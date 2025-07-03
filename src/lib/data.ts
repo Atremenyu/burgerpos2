@@ -1,4 +1,10 @@
-import type { Product, Ingredient, Order } from '@/types';
+import type { Product, Ingredient, Order, Category } from '@/types';
+
+export const categories: Category[] = [
+  { id: 'cat1', name: 'Hamburguesas' },
+  { id: 'cat2', name: 'Acompañamientos' },
+  { id: 'cat3', name: 'Bebidas' },
+];
 
 export const ingredients: Ingredient[] = [
   { id: 'ing1', name: 'Carne de Hamburguesa', stock: 100, unit: 'pcs' },

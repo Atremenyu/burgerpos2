@@ -2,12 +2,13 @@
 "use client";
 
 import * as React from "react";
-import type { Product, Ingredient, Order, CartItem } from "@/types";
-import { products as initialProducts, ingredients as initialIngredients } from "@/lib/data";
+import type { Product, Ingredient, Order, CartItem, Category } from "@/types";
+import { products as initialProducts, ingredients as initialIngredients, categories as initialCategories } from "@/lib/data";
 
 interface AppContextType {
   products: Product[];
   ingredients: Ingredient[];
+  categories: Category[];
   orders: Order[];
   addProduct: (product: Omit<Product, 'id' | 'ingredients'>) => void;
   updateProduct: (product: Product) => void;
@@ -15,6 +16,9 @@ interface AppContextType {
   addIngredient: (ingredient: Omit<Ingredient, 'id'>) => void;
   updateIngredient: (ingredient: Ingredient) => void;
   deleteIngredient: (ingredientId: string) => void;
+  addCategory: (category: Omit<Category, 'id'>) => void;
+  updateCategory: (category: Category) => void;
+  deleteCategory: (categoryId: string) => void;
   addOrder: (cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", customerName?: string, customerPhone?: string) => void;
   updateOrderStatus: (orderId: string, status: Order['status'], prepTime?: number) => void;
 }
@@ -24,6 +28,7 @@ const AppContext = React.createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = React.useState<Product[]>(initialProducts);
   const [ingredients, setIngredients] = React.useState<Ingredient[]>(initialIngredients);
+  const [categories, setCategories] = React.useState<Category[]>(initialCategories);
   const [orders, setOrders] = React.useState<Order[]>([]);
 
   const addProduct = (productData: Omit<Product, 'id' | 'ingredients'>) => {
@@ -58,6 +63,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const deleteIngredient = (ingredientId: string) => {
     setIngredients(prev => prev.filter(i => i.id !== ingredientId));
   };
+
+  const addCategory = (categoryData: Omit<Category, 'id'>) => {
+    const newCategory: Category = {
+      id: `cat${Date.now()}`,
+      ...categoryData,
+    };
+    setCategories(prev => [newCategory, ...prev]);
+  };
+
+  const updateCategory = (updatedCategory: Category) => {
+    setCategories(prev => prev.map(c => c.id === updatedCategory.id ? updatedCategory : c));
+  };
+  
+  const deleteCategory = (categoryId: string) => {
+    setCategories(prev => prev.filter(c => c.id !== categoryId));
+  };
   
   const addOrder = (cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", customerName?: string, customerPhone?: string) => {
     const newOrder: Order = {
@@ -84,6 +105,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value = {
     products,
     ingredients,
+    categories,
     orders,
     addProduct,
     updateProduct,
@@ -91,6 +113,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     addIngredient,
     updateIngredient,
     deleteIngredient,
+    addCategory,
+    updateCategory,
+    deleteCategory,
     addOrder,
     updateOrderStatus
   };

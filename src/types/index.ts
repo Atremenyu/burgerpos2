@@ -16,6 +16,11 @@ export type Ingredient = {
   unit: 'g' | 'ml' | 'pcs';
 };
 
+export type Category = {
+  id: string;
+  name: string;
+};
+
 export type CartItem = {
   id: string; // e.g. 'prod1-single' or 'prod1-combo'
   productId: string;

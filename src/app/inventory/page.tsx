@@ -46,12 +46,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import type { Product, Ingredient } from "@/types";
+import type { Product, Ingredient, Category } from "@/types";
 import { PlusCircle, Download, Edit, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAppContext } from "@/context/AppContext";
+import { useToast } from "@/hooks/use-toast";
 
 const productSchema = z.object({
   name: z.string().min(1, { message: "El nombre es requerido." }),
@@ -68,17 +69,26 @@ const ingredientSchema = z.object({
   unit: z.enum(['g', 'ml', 'pcs'], { required_error: "La unidad es requerida." }),
 });
 
+const categorySchema = z.object({
+  name: z.string().min(1, { message: "El nombre es requerido." }),
+});
+
 export default function InventoryPage() {
   const { 
     products, 
     ingredients, 
+    categories,
     addProduct, 
     updateProduct, 
     deleteProduct, 
     addIngredient, 
     updateIngredient, 
-    deleteIngredient 
+    deleteIngredient,
+    addCategory,
+    updateCategory,
+    deleteCategory,
   } = useAppContext();
+  const { toast } = useToast();
 
   const [isProductDialogOpen, setIsProductDialogOpen] = React.useState(false);
   const [editingProduct, setEditingProduct] = React.useState<Product | null>(null);
@@ -86,9 +96,12 @@ export default function InventoryPage() {
 
   const [isIngredientDialogOpen, setIsIngredientDialogOpen] = React.useState(false);
   const [editingIngredient, setEditingIngredient] = React.useState<Ingredient | null>(null);
+
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = React.useState(false);
+  const [editingCategory, setEditingCategory] = React.useState<Category | null>(null);
   
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const [deletingItem, setDeletingItem] = React.useState<{ type: 'product' | 'ingredient'; id: string; name: string } | null>(null);
+  const [deletingItem, setDeletingItem] = React.useState<{ type: 'product' | 'ingredient' | 'category'; id: string; name: string } | null>(null);
   
   const productForm = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
@@ -98,6 +111,11 @@ export default function InventoryPage() {
   const ingredientForm = useForm<z.infer<typeof ingredientSchema>>({
     resolver: zodResolver(ingredientSchema),
     defaultValues: { name: '', stock: 0, unit: 'pcs' },
+  });
+
+  const categoryForm = useForm<z.infer<typeof categorySchema>>({
+    resolver: zodResolver(categorySchema),
+    defaultValues: { name: '' },
   });
 
   React.useEffect(() => {
@@ -133,6 +151,14 @@ export default function InventoryPage() {
     }
   }, [isIngredientDialogOpen, editingIngredient, ingredientForm]);
   
+  React.useEffect(() => {
+    if (isCategoryDialogOpen) {
+      categoryForm.reset(editingCategory ? { name: editingCategory.name } : { name: '' });
+    } else {
+      setEditingCategory(null);
+    }
+  }, [isCategoryDialogOpen, editingCategory, categoryForm]);
+
   const handleProductSubmit = (data: z.infer<typeof productSchema>) => {
     const productData = {
       ...data,
@@ -155,12 +181,40 @@ export default function InventoryPage() {
     setIsIngredientDialogOpen(false);
   };
 
+  const handleCategorySubmit = (data: z.infer<typeof categorySchema>) => {
+    const isDuplicate = categories.some(
+      c => c.name.toLowerCase() === data.name.toLowerCase() && c.id !== editingCategory?.id
+    );
+    if (isDuplicate) {
+      categoryForm.setError("name", { message: "Ya existe una categoría con este nombre." });
+      return;
+    }
+
+    if (editingCategory) {
+      updateCategory({ ...editingCategory, ...data });
+    } else {
+      addCategory(data);
+    }
+    setIsCategoryDialogOpen(false);
+  };
+
   const handleDeleteConfirm = () => {
     if (!deletingItem) return;
     if (deletingItem.type === 'product') {
       deleteProduct(deletingItem.id);
-    } else {
+    } else if (deletingItem.type === 'ingredient') {
       deleteIngredient(deletingItem.id);
+    } else if (deletingItem.type === 'category') {
+      const isCategoryInUse = products.some(p => p.category === deletingItem.name);
+      if (isCategoryInUse) {
+        toast({
+          title: "Error al eliminar",
+          description: "No se puede eliminar la categoría porque está siendo utilizada por uno o más productos.",
+          variant: "destructive",
+        });
+      } else {
+        deleteCategory(deletingItem.id);
+      }
     }
     setIsDeleteDialogOpen(false);
     setDeletingItem(null);
@@ -175,8 +229,13 @@ export default function InventoryPage() {
     setEditingIngredient(ingredient);
     setIsIngredientDialogOpen(true);
   };
+
+  const openCategoryDialog = (category: Category | null) => {
+    setEditingCategory(category);
+    setIsCategoryDialogOpen(true);
+  };
   
-  const openDeleteDialog = (item: { type: 'product' | 'ingredient'; id: string; name: string }) => {
+  const openDeleteDialog = (item: { type: 'product' | 'ingredient' | 'category'; id: string; name: string }) => {
     setDeletingItem(item);
     setIsDeleteDialogOpen(true);
   };
@@ -208,9 +267,10 @@ export default function InventoryPage() {
         <h1 className="text-3xl font-bold">Gestión de Inventario</h1>
       </div>
       <Tabs defaultValue="products" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="products">Productos</TabsTrigger>
           <TabsTrigger value="ingredients">Ingredientes</TabsTrigger>
+          <TabsTrigger value="categories">Categorías</TabsTrigger>
         </TabsList>
         <TabsContent value="products">
           <div className="flex justify-end gap-2 mb-4">
@@ -297,6 +357,33 @@ export default function InventoryPage() {
             </TableBody>
           </Table>
         </TabsContent>
+        <TabsContent value="categories">
+          <div className="flex justify-end gap-2 mb-4">
+            <Button onClick={() => openCategoryDialog(null)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Añadir Categoría
+            </Button>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {categories.map((category) => (
+                <TableRow key={category.id}>
+                  <TableCell className="font-medium">{category.name}</TableCell>
+                  <TableCell className="flex gap-2">
+                     <Button variant="ghost" size="icon" onClick={() => openCategoryDialog(category)}><Edit className="h-4 w-4"/></Button>
+                     <Button variant="ghost" size="icon" className="text-destructive" onClick={() => openDeleteDialog({ type: 'category', id: category.id, name: category.name })}><Trash2 className="h-4 w-4"/></Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TabsContent>
       </Tabs>
 
       {/* Product Dialog */}
@@ -327,7 +414,18 @@ export default function InventoryPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Categoría</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                       <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona una categoría" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categories.map(category => (
+                          <SelectItem key={category.id} value={category.name}>{category.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -477,13 +575,45 @@ export default function InventoryPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Category Dialog */}
+      <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingCategory ? 'Editar Categoría' : 'Añadir Categoría'}</DialogTitle>
+            <DialogDescription>
+              {editingCategory ? 'Edita el nombre de la categoría.' : 'Añade una nueva categoría para tus productos.'}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...categoryForm}>
+            <form onSubmit={categoryForm.handleSubmit(handleCategorySubmit)} className="space-y-4">
+              <FormField
+                control={categoryForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>Cancelar</Button>
+                <Button type="submit">Guardar</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+
       {/* Delete Confirmation Dialog */}
        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Esto eliminará permanentemente "{deletingItem?.name}" de tu inventario.
+              Esta acción no se puede deshacer. Esto eliminará permanentemente "{deletingItem?.name}".
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

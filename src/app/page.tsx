@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -13,11 +14,11 @@ import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
 
 export default function CashierPage() {
-  const { products } = useAppContext();
+  const { products, categories: allCategories } = useAppContext();
   const [cart, setCart] = React.useState<CartItem[]>([]);
   const [view, setView] = React.useState<'grid' | 'list'>('grid');
   
-  const categories = ["Todos", ...Array.from(new Set(products.map(p => p.category)))];
+  const categories = ["Todos", ...allCategories.map(c => c.name)];
 
   const addToCart = (product: Product, isCombo: boolean) => {
     const cartItemId = product.id + (isCombo ? '-combo' : '-single');
