@@ -14,7 +14,7 @@ export default function CashierPage() {
   const [products] = React.useState<Product[]>(initialProducts);
   const [cart, setCart] = React.useState<CartItem[]>([]);
   
-  const categories = ["All", ...Array.from(new Set(products.map(p => p.category)))];
+  const categories = ["Todos", ...Array.from(new Set(products.map(p => p.category)))];
 
   const addToCart = (product: Product) => {
     setCart(prevCart => {
@@ -51,7 +51,7 @@ export default function CashierPage() {
         <div className="lg:col-span-2 h-full">
           <Card className="h-full shadow-lg dark:bg-gray-800/60">
             <CardContent className="p-4 md:p-6 h-full flex flex-col">
-              <Tabs defaultValue="All" className="flex-grow flex flex-col">
+              <Tabs defaultValue="Todos" className="flex-grow flex flex-col">
                 <TabsList className="mb-4 bg-gray-200 dark:bg-gray-900">
                   {categories.map(category => (
                     <TabsTrigger key={category} value={category} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -62,7 +62,7 @@ export default function CashierPage() {
                 {categories.map(category => (
                   <TabsContent key={category} value={category} className="flex-grow overflow-auto">
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                      {(category === "All" ? products : products.filter(p => p.category === category)).map(product => (
+                      {(category === "Todos" ? products : products.filter(p => p.category === category)).map(product => (
                         <ProductCard key={product.id} product={product} onAddToCart={() => addToCart(product)} />
                       ))}
                     </div>

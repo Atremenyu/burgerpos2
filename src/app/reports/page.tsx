@@ -10,26 +10,26 @@ export default function ReportsPage() {
   return (
     <AppShell>
       <div className="flex flex-col gap-8">
-        <h1 className="text-3xl font-bold">Reports Dashboard</h1>
+        <h1 className="text-3xl font-bold">Panel de Informes</h1>
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <StatCard
-                title="Today's Sales"
+                title="Ventas de Hoy"
                 value="$1,250.00"
                 icon={DollarSign}
-                change="+5.2% from yesterday"
+                change="+5.2% desde ayer"
             />
              <StatCard
-                title="Total Orders"
+                title="Pedidos Totales"
                 value="124"
                 icon={ShoppingCart}
-                change="+10 orders from yesterday"
+                change="+10 pedidos desde ayer"
             />
              <StatCard
-                title="Top Selling Item"
-                value="Classic Burger"
+                title="Producto más Vendido"
+                value="Hamburguesa Clásica"
                 icon={UtensilsCrossed}
-                change="78 units sold today"
+                change="78 unidades vendidas hoy"
             />
         </div>
 

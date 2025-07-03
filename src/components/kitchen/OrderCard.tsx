@@ -8,6 +8,7 @@ import type { Order } from "@/types";
 import { cn } from "@/lib/utils";
 import { Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface OrderCardProps {
   order: Order;
@@ -15,28 +16,28 @@ interface OrderCardProps {
 }
 
 const statusStyles = {
-  Preparing: {
+  Preparando: {
     badge: "bg-yellow-500 text-black",
     border: "border-yellow-500 animate-pulse",
   },
-  Ready: {
+  Listo: {
     badge: "bg-green-500 text-white",
     border: "border-green-500",
   },
-  Delivered: {
+  Entregado: {
     badge: "bg-blue-500 text-white",
     border: "border-gray-500",
   },
 };
 
 export default function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
-  const timeAgo = formatDistanceToNow(new Date(order.timestamp), { addSuffix: true });
+  const timeAgo = formatDistanceToNow(new Date(order.timestamp), { addSuffix: true, locale: es });
 
   const handleNextStatus = () => {
-    if (order.status === 'Preparing') {
-      onUpdateStatus(order.id, 'Ready');
-    } else if (order.status === 'Ready') {
-      onUpdateStatus(order.id, 'Delivered');
+    if (order.status === 'Preparando') {
+      onUpdateStatus(order.id, 'Listo');
+    } else if (order.status === 'Listo') {
+      onUpdateStatus(order.id, 'Entregado');
     }
   };
 
@@ -45,11 +46,11 @@ export default function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
       className={cn(
         "shadow-lg flex flex-col transition-all duration-300",
         statusStyles[order.status].border,
-        order.status === 'Delivered' && 'opacity-60 grayscale'
+        order.status === 'Entregado' && 'opacity-60 grayscale'
       )}
     >
       <CardHeader className="flex-row items-center justify-between p-4">
-        <CardTitle className="text-lg">Order #{order.id.slice(-4)}</CardTitle>
+        <CardTitle className="text-lg">Pedido #{order.id.slice(-4)}</CardTitle>
         <Badge className={cn(statusStyles[order.status].badge)}>{order.status}</Badge>
       </CardHeader>
       <CardContent className="flex-grow p-4 pt-0">
@@ -66,16 +67,16 @@ export default function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
           <span>Total</span>
           <span>${order.total.toFixed(2)}</span>
         </div>
-        {order.customerName && <p className="text-sm text-muted-foreground mt-2">Customer: {order.customerName}</p>}
+        {order.customerName && <p className="text-sm text-muted-foreground mt-2">Cliente: {order.customerName}</p>}
       </CardContent>
       <CardFooter className="flex flex-col gap-2 p-4 pt-0">
         <div className="flex items-center text-xs text-muted-foreground w-full">
             <Clock className="h-3 w-3 mr-1" />
             {timeAgo}
         </div>
-        {order.status !== 'Delivered' && (
+        {order.status !== 'Entregado' && (
           <Button className="w-full" onClick={handleNextStatus}>
-            {order.status === 'Preparing' ? 'Mark as Ready' : 'Mark as Delivered'}
+            {order.status === 'Preparando' ? 'Marcar como Listo' : 'Marcar como Entregado'}
           </Button>
         )}
       </CardFooter>

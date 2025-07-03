@@ -18,10 +18,10 @@ import { useTheme } from "next-themes";
 import * as React from 'react';
 
 const navLinks = [
-  { href: "/", label: "Cashier", icon: ShoppingCart },
-  { href: "/kitchen", label: "Kitchen", icon: ChefHat },
-  { href: "/inventory", label: "Inventory", icon: Boxes },
-  { href: "/reports", label: "Reports", icon: BarChart2 },
+  { href: "/", label: "Caja", icon: ShoppingCart },
+  { href: "/kitchen", label: "Cocina", icon: ChefHat },
+  { href: "/inventory", label: "Inventario", icon: Boxes },
+  { href: "/reports", label: "Informes", icon: BarChart2 },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -53,7 +53,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       >
         <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
         <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-        <span className="sr-only">Toggle theme</span>
+        <span className="sr-only">Cambiar tema</span>
       </Button>
     </nav>
   );

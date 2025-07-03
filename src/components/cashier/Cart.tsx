@@ -23,7 +23,7 @@ interface CartProps {
 export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps) {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [paymentStep, setPaymentStep] = React.useState(1);
-  const [paymentMethod, setPaymentMethod] = React.useState<"Cash" | "Card">("Card");
+  const [paymentMethod, setPaymentMethod] = React.useState<"Efectivo" | "Tarjeta">("Tarjeta");
   const [customerName, setCustomerName] = React.useState("");
 
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -42,7 +42,7 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
     setIsModalOpen(false);
     onClearCart();
     setCustomerName("");
-    setPaymentMethod("Card");
+    setPaymentMethod("Tarjeta");
   };
 
   return (
@@ -51,14 +51,14 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShoppingBag className="h-6 w-6" />
-            Current Order
+            Pedido Actual
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-grow p-0">
           <ScrollArea className="h-[calc(100vh-22rem)]">
             {cart.length === 0 ? (
               <div className="text-center text-muted-foreground p-8">
-                Your cart is empty.
+                Tu carrito está vacío.
               </div>
             ) : (
               <div className="p-4 space-y-4">
@@ -92,10 +92,10 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
               <span>${total.toFixed(2)}</span>
             </div>
             <Button className="w-full bg-accent hover:bg-accent/90" onClick={handleProcessPayment}>
-              Process Payment
+              Procesar Pago
             </Button>
             <Button variant="destructive" className="w-full" onClick={onClearCart}>
-              Clear Cart
+              Vaciar Carrito
             </Button>
           </CardFooter>
         )}
@@ -106,39 +106,39 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
           {paymentStep === 1 && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-2xl">Confirm Order</DialogTitle>
+                <DialogTitle className="text-2xl">Confirmar Pedido</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
                  <div className="space-y-2">
-                    <Label htmlFor="customerName">Customer Name (Optional)</Label>
+                    <Label htmlFor="customerName">Nombre del Cliente (Opcional)</Label>
                     <Input id="customerName" placeholder="John Doe" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
                   </div>
                 <div className="space-y-2">
-                   <Label>Payment Method</Label>
-                    <RadioGroup defaultValue={paymentMethod} onValueChange={(value: "Cash" | "Card") => setPaymentMethod(value)} className="flex gap-4">
-                      <Label htmlFor="card" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground w-full", paymentMethod === 'Card' && 'border-primary')}>
-                         <CreditCard className="mb-3 h-6 w-6" /> Card
-                         <RadioGroupItem value="Card" id="card" className="sr-only"/>
+                   <Label>Método de Pago</Label>
+                    <RadioGroup defaultValue={paymentMethod} onValueChange={(value: "Efectivo" | "Tarjeta") => setPaymentMethod(value)} className="flex gap-4">
+                      <Label htmlFor="card" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground w-full", paymentMethod === 'Tarjeta' && 'border-primary')}>
+                         <CreditCard className="mb-3 h-6 w-6" /> Tarjeta
+                         <RadioGroupItem value="Tarjeta" id="card" className="sr-only"/>
                       </Label>
-                      <Label htmlFor="cash" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground w-full", paymentMethod === 'Cash' && 'border-primary')}>
-                        <DollarSign className="mb-3 h-6 w-6" /> Cash
-                         <RadioGroupItem value="Cash" id="cash" className="sr-only"/>
+                      <Label htmlFor="cash" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground w-full", paymentMethod === 'Efectivo' && 'border-primary')}>
+                        <DollarSign className="mb-3 h-6 w-6" /> Efectivo
+                         <RadioGroupItem value="Efectivo" id="cash" className="sr-only"/>
                       </Label>
                     </RadioGroup>
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-                <Button className="bg-accent hover:bg-accent/90" onClick={handleConfirmPayment}>Pay ${total.toFixed(2)}</Button>
+                <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+                <Button className="bg-accent hover:bg-accent/90" onClick={handleConfirmPayment}>Pagar ${total.toFixed(2)}</Button>
               </DialogFooter>
             </>
           )}
           {paymentStep === 2 && (
             <div className="flex flex-col items-center justify-center p-8 text-center">
               <CheckCircle className="h-20 w-20 text-green-500 mb-4 animate-in zoom-in-50" />
-              <h2 className="text-2xl font-bold mb-2">Payment Successful!</h2>
-              <p className="text-muted-foreground">Your order has been placed.</p>
-              <Button className="mt-6 w-full" onClick={handleCloseModal}>Done</Button>
+              <h2 className="text-2xl font-bold mb-2">¡Pago Exitoso!</h2>
+              <p className="text-muted-foreground">Tu pedido ha sido realizado.</p>
+              <Button className="mt-6 w-full" onClick={handleCloseModal}>Hecho</Button>
             </div>
           )}
         </DialogContent>

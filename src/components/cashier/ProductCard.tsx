@@ -33,7 +33,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             className="object-cover w-full h-32"
             data-ai-hint="burger food"
           />
-           {isOutOfStock && <Badge variant="destructive" className="absolute top-2 right-2">Out of Stock</Badge>}
+           {isOutOfStock && <Badge variant="destructive" className="absolute top-2 right-2">Agotado</Badge>}
         </div>
         <div className="p-3">
           <h3 className="font-semibold text-sm truncate">{product.name}</h3>
@@ -46,7 +46,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           disabled={isOutOfStock}
           size="sm"
         >
-          <PlusCircle className="mr-2 h-4 w-4" /> Add
+          <PlusCircle className="mr-2 h-4 w-4" /> Añadir
         </Button>
       </CardContent>
     </Card>

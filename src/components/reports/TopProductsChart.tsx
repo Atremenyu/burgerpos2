@@ -19,7 +19,7 @@ import {
 import { products } from "@/lib/data"
 
 const chartData = products
-    .filter(p => p.category === 'Burgers')
+    .filter(p => p.category === 'Hamburguesas')
     .slice(0, 5)
     .map(p => ({
         product: p.name,
@@ -29,7 +29,7 @@ const chartData = products
 
 const chartConfig = {
     sold: {
-        label: "Units Sold",
+        label: "Unidades Vendidas",
     }
 }
 
@@ -41,8 +41,8 @@ export default function TopProductsChart() {
   return (
     <Card className="flex flex-col shadow-lg">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Top Selling Products</CardTitle>
-        <CardDescription>Burgers - This Week</CardDescription>
+        <CardTitle>Productos más Vendidos</CardTitle>
+        <CardDescription>Hamburguesas - Esta Semana</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -94,7 +94,7 @@ export default function TopProductsChart() {
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          Units
+                          Unidades
                         </tspan>
                       </text>
                     )

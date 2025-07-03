@@ -59,33 +59,33 @@ export default function InventoryPage() {
   return (
     <AppShell>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Inventory Management</h1>
+        <h1 className="text-3xl font-bold">Gestión de Inventario</h1>
         {/* Add/Export buttons could be context-sensitive to the active tab */}
       </div>
       <Tabs defaultValue="products" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="products">Products</TabsTrigger>
-          <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
+          <TabsTrigger value="products">Productos</TabsTrigger>
+          <TabsTrigger value="ingredients">Ingredientes</TabsTrigger>
         </TabsList>
         <TabsContent value="products">
           <div className="flex justify-end gap-2 mb-4">
              <Button variant="outline" onClick={() => handleExport(products, 'products.csv')}>
                <Download className="mr-2 h-4 w-4" />
-               Export CSV
+               Exportar CSV
              </Button>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Add Product
+              Añadir Producto
             </Button>
           </div>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Categoría</TableHead>
+                <TableHead>Precio</TableHead>
+                <TableHead>Existencias</TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -108,20 +108,20 @@ export default function InventoryPage() {
            <div className="flex justify-end gap-2 mb-4">
              <Button variant="outline" onClick={() => handleExport(ingredients, 'ingredients.csv')}>
                <Download className="mr-2 h-4 w-4" />
-               Export CSV
+               Exportar CSV
              </Button>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Add Ingredient
+              Añadir Ingrediente
             </Button>
           </div>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Unit</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Existencias</TableHead>
+                <TableHead>Unidad</TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

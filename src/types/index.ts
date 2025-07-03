@@ -29,8 +29,8 @@ export type Order = {
   items: CartItem[];
   total: number;
   timestamp: string;
-  status: 'Preparing' | 'Ready' | 'Delivered';
-  paymentMethod: 'Cash' | 'Card';
+  status: 'Preparando' | 'Listo' | 'Entregado';
+  paymentMethod: 'Efectivo' | 'Tarjeta';
   customerName?: string;
   customerPhone?: string;
 };

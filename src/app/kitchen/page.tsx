@@ -24,12 +24,12 @@ export default function KitchenPage() {
     const interval = setInterval(() => {
       const newOrder: Order = {
         id: `ord${Date.now()}`,
-        items: [{ productId: 'prod1', name: 'Classic Burger', price: 8.99, quantity: 1, image: 'https://placehold.co/300x300.png' }],
+        items: [{ productId: 'prod1', name: 'Hamburguesa Clásica', price: 8.99, quantity: 1, image: 'https://placehold.co/300x300.png' }],
         total: 8.99,
         timestamp: new Date().toISOString(),
-        status: 'Preparing',
-        paymentMethod: 'Card',
-        customerName: 'New Customer'
+        status: 'Preparando',
+        paymentMethod: 'Tarjeta',
+        customerName: 'Nuevo Cliente'
       };
       setOrders(prev => [newOrder, ...prev]);
     }, 30000); // Add a new order every 30 seconds
@@ -37,19 +37,19 @@ export default function KitchenPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const preparingOrders = orders.filter(o => o.status === 'Preparing');
-  const readyOrders = orders.filter(o => o.status === 'Ready');
-  const deliveredOrders = orders.filter(o => o.status === 'Delivered');
+  const preparingOrders = orders.filter(o => o.status === 'Preparando');
+  const readyOrders = orders.filter(o => o.status === 'Listo');
+  const deliveredOrders = orders.filter(o => o.status === 'Entregado');
 
   return (
     <AppShell>
       <div className="flex flex-col h-full">
-        <h1 className="text-3xl font-bold mb-6">Kitchen Display System</h1>
+        <h1 className="text-3xl font-bold mb-6">Sistema de Pantalla de Cocina</h1>
         <Tabs defaultValue="preparing" className="flex-grow">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="preparing">Preparing ({preparingOrders.length})</TabsTrigger>
-            <TabsTrigger value="ready">Ready ({readyOrders.length})</TabsTrigger>
-            <TabsTrigger value="delivered">Delivered ({deliveredOrders.length})</TabsTrigger>
+            <TabsTrigger value="preparing">Preparando ({preparingOrders.length})</TabsTrigger>
+            <TabsTrigger value="ready">Listo ({readyOrders.length})</TabsTrigger>
+            <TabsTrigger value="delivered">Entregado ({deliveredOrders.length})</TabsTrigger>
           </TabsList>
           <TabsContent value="preparing" className="mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
