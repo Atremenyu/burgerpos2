@@ -33,8 +33,8 @@ const statusStyles = {
     border: "border-orange-500",
   },
   Preparando: {
-    badge: "bg-yellow-500 text-black",
-    border: "border-yellow-500 animate-pulse",
+    badge: "bg-yellow-500 text-black animate-pulse",
+    border: "border-yellow-500",
   },
   Listo: {
     badge: "bg-green-500 text-white",
