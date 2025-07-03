@@ -8,7 +8,6 @@ import type { Order } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function KitchenPage() {
   const { orders, updateOrderStatus, currentUser } = useAppContext();
@@ -29,6 +28,26 @@ export default function KitchenPage() {
     );
   }
 
+  const renderOrderList = (orderList: Order[]) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-1">
+      <AnimatePresence>
+        {orderList.map(order => (
+           <motion.div
+            key={order.id}
+            layout
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+          >
+            <OrderCard order={order} onUpdateStatus={updateOrderStatus} />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+
+
   return (
     <AppShell>
       <div className="flex flex-col h-full">
@@ -40,85 +59,18 @@ export default function KitchenPage() {
             <TabsTrigger value="ready">Listo ({readyOrders.length})</TabsTrigger>
             <TabsTrigger value="delivered">Entregado ({deliveredOrders.length})</TabsTrigger>
           </TabsList>
-          <TabsContent value="pending" className="mt-4 flex-1 overflow-hidden">
-            <ScrollArea className="h-full">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-1">
-                <AnimatePresence>
-                  {pendingOrders.map(order => (
-                     <motion.div
-                      key={order.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <OrderCard order={order} onUpdateStatus={updateOrderStatus} />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            </ScrollArea>
+          
+          <TabsContent value="pending" className="mt-4 flex-1 overflow-y-auto">
+             {renderOrderList(pendingOrders)}
           </TabsContent>
-          <TabsContent value="preparing" className="mt-4 flex-1 overflow-hidden">
-             <ScrollArea className="h-full">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-1">
-                <AnimatePresence>
-                  {preparingOrders.map(order => (
-                     <motion.div
-                      key={order.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <OrderCard order={order} onUpdateStatus={updateOrderStatus} />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            </ScrollArea>
+          <TabsContent value="preparing" className="mt-4 flex-1 overflow-y-auto">
+             {renderOrderList(preparingOrders)}
           </TabsContent>
-          <TabsContent value="ready" className="mt-4 flex-1 overflow-hidden">
-            <ScrollArea className="h-full">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-1">
-                 <AnimatePresence>
-                  {readyOrders.map(order => (
-                    <motion.div
-                      key={order.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <OrderCard order={order} onUpdateStatus={updateOrderStatus} />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            </ScrollArea>
+          <TabsContent value="ready" className="mt-4 flex-1 overflow-y-auto">
+            {renderOrderList(readyOrders)}
           </TabsContent>
-          <TabsContent value="delivered" className="mt-4 flex-1 overflow-hidden">
-            <ScrollArea className="h-full">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-1">
-                 <AnimatePresence>
-                  {deliveredOrders.map(order => (
-                    <motion.div
-                      key={order.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <OrderCard order={order} onUpdateStatus={updateOrderStatus} />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            </ScrollArea>
+          <TabsContent value="delivered" className="mt-4 flex-1 overflow-y-auto">
+            {renderOrderList(deliveredOrders)}
           </TabsContent>
         </Tabs>
       </div>
