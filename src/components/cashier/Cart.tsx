@@ -73,12 +73,12 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
     const value = e.target.value;
     setCustomerName(value);
 
-    if (value.length > 0) {
+    if (value) {
       const filtered = customers.filter(c => 
         c.name.toLowerCase().includes(value.toLowerCase())
       );
       setSuggestions(filtered);
-      setIsSuggestionsOpen(filtered.length > 0);
+      setIsSuggestionsOpen(true);
     } else {
       setSuggestions([]);
       setIsSuggestionsOpen(false);
@@ -175,9 +175,9 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
                         <ScrollArea className="max-h-60">
                           <div className="p-1">
                             {suggestions.length > 0 ? (
-                              suggestions.map((customer, index) => (
+                              suggestions.map((customer) => (
                                 <button
-                                  key={index}
+                                  key={customer.name}
                                   className="w-full text-left p-2 text-sm rounded-md hover:bg-accent focus:bg-accent focus:outline-none"
                                   onClick={() => handleSuggestionClick(customer)}
                                 >
@@ -188,9 +188,13 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
                                 </button>
                               ))
                             ) : (
-                              <div className="p-2 text-center text-sm text-muted-foreground">
-                                No se encontraron clientes.
-                              </div>
+                               <div className="p-2 text-center text-sm text-muted-foreground">
+                                {customerName.trim().length > 0 ? (
+                                    'Se creará un nuevo cliente.'
+                                ) : (
+                                    'Comienza a escribir para buscar o crear un cliente.'
+                                )}
+                                </div>
                             )}
                           </div>
                         </ScrollArea>

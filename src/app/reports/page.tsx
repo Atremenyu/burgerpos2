@@ -116,24 +116,29 @@ export default function ReportsPage() {
   }, [orders, selectedDate]);
 
   const customers = React.useMemo(() => {
-    const customerMap = new Map<string, { name: string; phone: string; orders: Order[] }>();
+    const customerMap = new Map<string, { name: string; phones: Set<string>; orders: Order[] }>();
 
     orders.forEach(order => {
-        if (order.customerName || order.customerPhone) {
-            const customerKey = `${order.customerName || ''}-${order.customerPhone || ''}`;
+        if (order.customerName) {
+            const customerKey = order.customerName.toLowerCase().trim();
             if (!customerMap.has(customerKey)) {
                 customerMap.set(customerKey, {
-                    name: order.customerName || 'N/A',
-                    phone: order.customerPhone || 'N/A',
+                    name: order.customerName,
+                    phones: new Set<string>(),
                     orders: []
                 });
             }
-            customerMap.get(customerKey)!.orders.push(order);
+            const customerEntry = customerMap.get(customerKey)!;
+            customerEntry.orders.push(order);
+            if (order.customerPhone) {
+                customerEntry.phones.add(order.customerPhone);
+            }
         }
     });
 
     return Array.from(customerMap.values()).map(c => ({
         ...c,
+        phone: [...c.phones].join(', '),
         orderCount: c.orders.length,
         totalSpent: c.orders.reduce((sum, o) => sum + o.total, 0)
     })).sort((a,b) => b.totalSpent - a.totalSpent);
@@ -448,13 +453,13 @@ export default function ReportsPage() {
                     </TableHeader>
                     <TableBody>
                       {customers.length > 0 ? customers.map(customer => (
-                        <TableRow key={`${customer.name}-${customer.phone}`}>
+                        <TableRow key={customer.name}>
                           <TableCell className="font-medium">{customer.name}</TableCell>
                           <TableCell>{customer.phone}</TableCell>
                           <TableCell>{customer.orderCount}</TableCell>
                           <TableCell>${customer.totalSpent.toFixed(2)}</TableCell>
                           <TableCell>
-                            <Button variant="outline" size="sm" onClick={() => setSelectedCustomer(customer)}>
+                            <Button variant="outline" size="sm" onClick={() => setSelectedCustomer(customer as CustomerData)}>
                               Ver Pedidos
                             </Button>
                           </TableCell>
