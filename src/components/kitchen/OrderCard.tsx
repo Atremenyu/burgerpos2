@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { Order } from "@/types";
 import { cn } from "@/lib/utils";
-import { Clock, Timer, User } from "lucide-react";
+import { Clock, Timer, User, Utensils, Package } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -144,6 +144,11 @@ function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
           <span>${order.total.toFixed(2)}</span>
         </div>
         <div className="text-sm text-muted-foreground mt-3 pt-3 border-t space-y-1">
+          <p className="flex items-center gap-1.5 font-semibold">
+            {order.orderType === 'Comedor' ? <Utensils className="h-4 w-4" /> : <Package className="h-4 w-4" />}
+            {order.orderType}
+            {order.deliveryPlatform && ` (${order.deliveryPlatform})`}
+          </p>
           {order.customerName && <p>Cliente: {order.customerName}</p>}
           <p className="flex items-center gap-1.5"><User className="h-3 w-3"/>Usuario: {order.userName}</p>
         </div>

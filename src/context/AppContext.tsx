@@ -27,7 +27,7 @@ interface AppContextType {
   addCategory: (category: Omit<Category, 'id'>) => void;
   updateCategory: (category: Category) => void;
   deleteCategory: (categoryId: string) => void;
-  addOrder: (cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", customerName?: string, customerPhone?: string) => void;
+  addOrder: (cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", orderType: Order['orderType'], deliveryPlatform: Order['deliveryPlatform'], customerName?: string, customerPhone?: string) => void;
   updateOrderStatus: (orderId: string, status: Order['status'], prepTime?: number) => void;
   addExpense: (expense: Omit<Expense, 'id' | 'timestamp'>) => void;
   deleteExpense: (expenseId: string) => void;
@@ -125,7 +125,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setCategories(prev => prev.filter(c => c.id !== categoryId));
   }, []);
   
-  const addOrder = React.useCallback((cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", customerName?: string, customerPhone?: string) => {
+  const addOrder = React.useCallback((cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", orderType: Order['orderType'], deliveryPlatform?: Order['deliveryPlatform'], customerName?: string, customerPhone?: string) => {
     if (!currentUser || !activeShift) {
         toast({ title: "Error", description: "No hay un turno de caja activo para registrar el pedido.", variant: "destructive"});
         return;
@@ -138,6 +138,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         timestamp: new Date().toISOString(),
         status: 'Pendiente',
         paymentMethod,
+        orderType,
+        deliveryPlatform: orderType === 'Para Llevar' ? deliveryPlatform : undefined,
         customerName: customerName && customerName.trim() !== '' ? customerName : undefined,
         customerPhone: customerPhone && customerPhone.trim() !== '' ? customerPhone : undefined,
         userId: currentUser.id,

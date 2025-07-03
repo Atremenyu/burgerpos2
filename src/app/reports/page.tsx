@@ -391,6 +391,7 @@ export default function ReportsPage() {
                                     <TableHead>Fecha</TableHead>
                                     <TableHead>Usuario</TableHead>
                                     <TableHead>Cliente</TableHead>
+                                    <TableHead>Tipo</TableHead>
                                     <TableHead>Total</TableHead>
                                     <TableHead>Estado</TableHead>
                                 </TableRow>
@@ -402,12 +403,20 @@ export default function ReportsPage() {
                                         <TableCell>{format(new Date(order.timestamp), 'PPp', { locale: es })}</TableCell>
                                         <TableCell>{order.userName}</TableCell>
                                         <TableCell>{order.customerName || 'N/A'}</TableCell>
+                                        <TableCell>
+                                            {order.orderType}
+                                            {order.deliveryPlatform && (
+                                                <span className="text-muted-foreground text-xs block">
+                                                    ({order.deliveryPlatform})
+                                                </span>
+                                            )}
+                                        </TableCell>
                                         <TableCell>${order.total.toFixed(2)}</TableCell>
                                         <TableCell><Badge variant="outline">{order.status}</Badge></TableCell>
                                     </TableRow>
                                 )) : (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center">Aún no se han registrado pedidos.</TableCell>
+                                        <TableCell colSpan={7} className="text-center">Aún no se han registrado pedidos.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
@@ -477,6 +486,7 @@ export default function ReportsPage() {
                   <TableRow>
                     <TableHead>Pedido</TableHead>
                     <TableHead>Fecha</TableHead>
+                    <TableHead>Tipo</TableHead>
                     <TableHead>Total</TableHead>
                     <TableHead>Estado</TableHead>
                   </TableRow>
@@ -486,6 +496,14 @@ export default function ReportsPage() {
                     <TableRow key={order.id}>
                       <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
                       <TableCell>{format(new Date(order.timestamp), 'PPp', { locale: es })}</TableCell>
+                      <TableCell>
+                        {order.orderType}
+                        {order.deliveryPlatform && (
+                            <span className="text-muted-foreground text-xs block">
+                                ({order.deliveryPlatform})
+                            </span>
+                        )}
+                      </TableCell>
                       <TableCell>${order.total.toFixed(2)}</TableCell>
                       <TableCell><Badge variant="outline">{order.status}</Badge></TableCell>
                     </TableRow>

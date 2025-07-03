@@ -12,10 +12,11 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus, Minus, ShoppingBag, CheckCircle, CreditCard, DollarSign, Printer, Send } from "lucide-react";
-import type { CartItem, Customer } from "@/types";
+import { Plus, Minus, ShoppingBag, CheckCircle, CreditCard, DollarSign, Printer, Send, Utensils, Package } from "lucide-react";
+import type { CartItem, Customer, Order } from "@/types";
 import { cn } from "@/lib/utils";
 import { useAppContext } from "@/context/AppContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface CartProps {
   cart: CartItem[];
@@ -32,6 +33,8 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
   const [customerPhone, setCustomerPhone] = React.useState("");
   const [suggestions, setSuggestions] = React.useState<Customer[]>([]);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = React.useState(false);
+  const [orderType, setOrderType] = React.useState<Order['orderType']>('Comedor');
+  const [deliveryPlatform, setDeliveryPlatform] = React.useState<Order['deliveryPlatform']>();
 
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
@@ -41,9 +44,9 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
   }, []);
   
   const handleConfirmPayment = React.useCallback(() => {
-    addOrder(cart, total, paymentMethod, customerName, customerPhone);
+    addOrder(cart, total, paymentMethod, orderType, deliveryPlatform, customerName, customerPhone);
     setPaymentStep(3);
-  }, [addOrder, cart, total, paymentMethod, customerName, customerPhone]);
+  }, [addOrder, cart, total, paymentMethod, orderType, deliveryPlatform, customerName, customerPhone]);
   
   const handleCloseAndReset = React.useCallback(() => {
     setIsModalOpen(false);
@@ -51,6 +54,8 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
     setCustomerName("");
     setCustomerPhone("");
     setPaymentMethod("Tarjeta");
+    setOrderType('Comedor');
+    setDeliveryPlatform(undefined);
   }, [onClearCart]);
   
   const handleNameChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -185,6 +190,40 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
                     <Label htmlFor="customerPhone">Teléfono del Cliente (Opcional)</Label>
                     <Input id="customerPhone" placeholder="555-123-4567" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
                 </div>
+
+                <div className="space-y-2">
+                    <Label>Tipo de Pedido</Label>
+                    <RadioGroup defaultValue={orderType} onValueChange={(value: Order['orderType']) => {
+                        setOrderType(value);
+                        if (value === 'Comedor') setDeliveryPlatform(undefined);
+                    }} className="flex gap-4">
+                        <Label htmlFor="dine-in" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground w-full", orderType === 'Comedor' && 'border-primary')}>
+                            <Utensils className="mb-3 h-6 w-6" /> Comedor
+                            <RadioGroupItem value="Comedor" id="dine-in" className="sr-only"/>
+                        </Label>
+                        <Label htmlFor="takeout" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground w-full", orderType === 'Para Llevar' && 'border-primary')}>
+                            <Package className="mb-3 h-6 w-6" /> Para Llevar
+                            <RadioGroupItem value="Para Llevar" id="takeout" className="sr-only"/>
+                        </Label>
+                    </RadioGroup>
+                </div>
+                {orderType === 'Para Llevar' && (
+                    <div className="space-y-2">
+                        <Label htmlFor="deliveryPlatform">Plataforma de Entrega</Label>
+                        <Select onValueChange={(value: Order['deliveryPlatform']) => setDeliveryPlatform(value)} value={deliveryPlatform}>
+                            <SelectTrigger id="deliveryPlatform">
+                                <SelectValue placeholder="Selecciona una plataforma" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Uber">Uber</SelectItem>
+                                <SelectItem value="Didi">Didi</SelectItem>
+                                <SelectItem value="Whatsapp">Whatsapp</SelectItem>
+                                <SelectItem value="Teléfono">Teléfono</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
+
                 <div className="space-y-2">
                    <Label>Método de Pago</Label>
                     <RadioGroup defaultValue={paymentMethod} onValueChange={(value: "Efectivo" | "Tarjeta") => setPaymentMethod(value)} className="flex gap-4">
@@ -201,7 +240,7 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-                <Button onClick={() => setPaymentStep(2)}>Siguiente (${total.toFixed(2)})</Button>
+                <Button onClick={() => setPaymentStep(2)} disabled={orderType === 'Para Llevar' && !deliveryPlatform}>Siguiente (${total.toFixed(2)})</Button>
               </DialogFooter>
             </>
           )}
@@ -218,6 +257,7 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
                     <h4 className="font-semibold mb-2 text-center">Resumen del Pedido</h4>
                     <div className="flex justify-between"><span className="text-muted-foreground">Cliente:</span> <strong>{customerName || 'N/A'}</strong></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Teléfono:</span> <strong>{customerPhone || 'N/A'}</strong></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Tipo:</span> <strong>{orderType} {orderType === 'Para Llevar' && deliveryPlatform ? `(${deliveryPlatform})` : ''}</strong></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Método:</span> <strong>{paymentMethod}</strong></div>
                     <Separator className="my-2"/>
                     <div className="flex justify-between text-lg"><span className="font-semibold">Total:</span> <strong className="text-primary">${total.toFixed(2)}</strong></div>

@@ -38,6 +38,8 @@ export type Order = {
   timestamp: string;
   status: 'Pendiente' | 'Preparando' | 'Listo' | 'Entregado';
   paymentMethod: 'Efectivo' | 'Tarjeta';
+  orderType: 'Comedor' | 'Para Llevar';
+  deliveryPlatform?: 'Uber' | 'Didi' | 'Whatsapp' | 'Teléfono';
   customerName?: string;
   customerPhone?: string;
   prepTime?: number;
