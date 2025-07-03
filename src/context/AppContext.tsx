@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import type { Product, Ingredient, Order, CartItem, Category, Expense } from "@/types";
+import type { Product, Ingredient, Order, CartItem, Category, Expense, Customer } from "@/types";
 import { products as initialProducts, ingredients as initialIngredients, categories as initialCategories } from "@/lib/data";
 
 interface AppContextType {
@@ -11,6 +11,7 @@ interface AppContextType {
   categories: Category[];
   orders: Order[];
   expenses: Expense[];
+  customers: Customer[];
   addProduct: (product: Omit<Product, 'id' | 'ingredients'>) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
@@ -34,6 +35,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
+
+  const customers = React.useMemo(() => {
+    const customerMap = new Map<string, Customer>();
+    // Iterate backwards to get the most recent phone number for a customer if it has changed
+    for (let i = orders.length - 1; i >= 0; i--) {
+        const order = orders[i];
+        if (order.customerName) {
+            const customerKey = order.customerName.toLowerCase().trim();
+            if (customerKey && !customerMap.has(customerKey)) {
+                customerMap.set(customerKey, {
+                    name: order.customerName,
+                    phone: order.customerPhone || '',
+                });
+            }
+        }
+    }
+    return Array.from(customerMap.values()).sort((a,b) => a.name.localeCompare(b.name));
+  }, [orders]);
 
   const addProduct = React.useCallback((productData: Omit<Product, 'id' | 'ingredients'>) => {
     const newProduct: Product = {
@@ -125,6 +144,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     categories,
     orders,
     expenses,
+    customers,
     addProduct,
     updateProduct,
     deleteProduct,
@@ -139,7 +159,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     addExpense,
     deleteExpense,
   }), [
-    products, ingredients, categories, orders, expenses, 
+    products, ingredients, categories, orders, expenses, customers,
     addProduct, updateProduct, deleteProduct, 
     addIngredient, updateIngredient, deleteIngredient, 
     addCategory, updateCategory, deleteCategory,

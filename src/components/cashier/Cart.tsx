@@ -8,11 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Plus, Minus, ShoppingBag, CheckCircle, CreditCard, DollarSign, Printer, Send } from "lucide-react";
-import type { CartItem } from "@/types";
+import type { CartItem, Customer } from "@/types";
 import { cn } from "@/lib/utils";
 import { useAppContext } from "@/context/AppContext";
 
@@ -23,12 +24,14 @@ interface CartProps {
 }
 
 export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps) {
-  const { addOrder } = useAppContext();
+  const { addOrder, customers } = useAppContext();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [paymentStep, setPaymentStep] = React.useState(1);
   const [paymentMethod, setPaymentMethod] = React.useState<"Efectivo" | "Tarjeta">("Tarjeta");
   const [customerName, setCustomerName] = React.useState("");
   const [customerPhone, setCustomerPhone] = React.useState("");
+  const [suggestions, setSuggestions] = React.useState<Customer[]>([]);
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = React.useState(false);
 
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
@@ -49,6 +52,29 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
     setCustomerPhone("");
     setPaymentMethod("Tarjeta");
   }, [onClearCart]);
+  
+  const handleNameChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCustomerName(value);
+
+    if (value.length > 0) {
+      const filtered = customers.filter(c => 
+        c.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setSuggestions(filtered);
+      setIsSuggestionsOpen(filtered.length > 0);
+    } else {
+      setSuggestions([]);
+      setIsSuggestionsOpen(false);
+    }
+  }, [customers]);
+  
+  const handleSuggestionClick = React.useCallback((customer: Customer) => {
+    setCustomerName(customer.name);
+    setCustomerPhone(customer.phone);
+    setSuggestions([]);
+    setIsSuggestionsOpen(false);
+  }, []);
 
   return (
     <>
@@ -106,7 +132,7 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
         )}
       </Card>
       
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <Dialog open={isModalOpen} onOpenChange={(isOpen) => { if (!isOpen) { setPaymentStep(1); } setIsModalOpen(isOpen)}}>
         <DialogContent className="sm:max-w-md">
           {paymentStep === 1 && (
             <>
@@ -119,7 +145,41 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
               <div className="space-y-4 py-4">
                  <div className="space-y-2">
                     <Label htmlFor="customerName">Nombre del Cliente (Opcional)</Label>
-                    <Input id="customerName" placeholder="John Doe" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+                    <Popover open={isSuggestionsOpen} onOpenChange={setIsSuggestionsOpen}>
+                      <PopoverTrigger asChild>
+                        <Input
+                          id="customerName"
+                          placeholder="John Doe"
+                          value={customerName}
+                          onChange={handleNameChange}
+                          autoComplete="off"
+                        />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                        <ScrollArea className="max-h-60">
+                          <div className="p-1">
+                            {suggestions.length > 0 ? (
+                              suggestions.map((customer, index) => (
+                                <button
+                                  key={index}
+                                  className="w-full text-left p-2 text-sm rounded-md hover:bg-accent focus:bg-accent focus:outline-none"
+                                  onClick={() => handleSuggestionClick(customer)}
+                                >
+                                  <p className="font-medium">{customer.name}</p>
+                                  {customer.phone && (
+                                    <p className="text-xs text-muted-foreground">{customer.phone}</p>
+                                  )}
+                                </button>
+                              ))
+                            ) : (
+                              <div className="p-2 text-center text-sm text-muted-foreground">
+                                No se encontraron clientes.
+                              </div>
+                            )}
+                          </div>
+                        </ScrollArea>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 <div className="space-y-2">
                     <Label htmlFor="customerPhone">Teléfono del Cliente (Opcional)</Label>

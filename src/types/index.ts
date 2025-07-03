@@ -48,3 +48,8 @@ export type Expense = {
   amount: number;
   timestamp: string;
 };
+
+export type Customer = {
+  name: string;
+  phone: string;
+};
