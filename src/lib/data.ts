@@ -1,0 +1,150 @@
+import type { Product, Ingredient, Order } from '@/types';
+
+export const ingredients: Ingredient[] = [
+  { id: 'ing1', name: 'Burger Patty', stock: 100, unit: 'pcs' },
+  { id: 'ing2', name: 'Burger Bun', stock: 150, unit: 'pcs' },
+  { id: 'ing3', name: 'Cheese Slice', stock: 200, unit: 'pcs' },
+  { id: 'ing4', name: 'Lettuce', stock: 1000, unit: 'g' },
+  { id: 'ing5', name: 'Tomato Slice', stock: 500, unit: 'pcs' },
+  { id: 'ing6', name: 'Fries', stock: 5000, unit: 'g' },
+  { id: 'ing7', name: 'Soda Syrup', stock: 10000, unit: 'ml' },
+  { id: 'ing8', name: 'Special Sauce', stock: 2000, unit: 'ml' },
+];
+
+export const products: Product[] = [
+  {
+    id: 'prod1',
+    name: 'Classic Burger',
+    price: 8.99,
+    category: 'Burgers',
+    image: 'https://placehold.co/300x300.png',
+    stock: 50,
+    ingredients: [
+      { ingredientId: 'ing1', quantity: 1 },
+      { ingredientId: 'ing2', quantity: 1 },
+      { ingredientId: 'ing3', quantity: 1 },
+      { ingredientId: 'ing4', quantity: 20 },
+      { ingredientId: 'ing5', quantity: 2 },
+    ],
+  },
+  {
+    id: 'prod2',
+    name: 'Double Cheeseburger',
+    price: 11.99,
+    category: 'Burgers',
+    image: 'https://placehold.co/300x300.png',
+    stock: 30,
+    ingredients: [
+      { ingredientId: 'ing1', quantity: 2 },
+      { ingredientId: 'ing2', quantity: 1 },
+      { ingredientId: 'ing3', quantity: 2 },
+    ],
+  },
+  {
+    id: 'prod3',
+    name: 'Fries',
+    price: 3.49,
+    category: 'Sides',
+    image: 'https://placehold.co/300x300.png',
+    stock: 100,
+    ingredients: [{ ingredientId: 'ing6', quantity: 150 }],
+  },
+  {
+    id: 'prod4',
+    name: 'Cola',
+    price: 1.99,
+    category: 'Drinks',
+    image: 'https://placehold.co/300x300.png',
+    stock: 200,
+    ingredients: [{ ingredientId: 'ing7', quantity: 300 }],
+  },
+  {
+    id: 'prod5',
+    name: 'Veggie Burger',
+    price: 9.99,
+    category: 'Burgers',
+    image: 'https://placehold.co/300x300.png',
+    stock: 25,
+    ingredients: [
+        { ingredientId: 'ing2', quantity: 1 },
+        { ingredientId: 'ing4', quantity: 30 },
+        { ingredientId: 'ing5', quantity: 3 },
+    ],
+  },
+  {
+    id: 'prod6',
+    name: 'Onion Rings',
+    price: 4.49,
+    category: 'Sides',
+    image: 'https://placehold.co/300x300.png',
+    stock: 50,
+    ingredients: [],
+  },
+   {
+    id: 'prod7',
+    name: 'Milkshake',
+    price: 5.49,
+    category: 'Drinks',
+    image: 'https://placehold.co/300x300.png',
+    stock: 40,
+    ingredients: [],
+  },
+  {
+    id: 'prod8',
+    name: 'Spicy Chicken Burger',
+    price: 10.49,
+    category: 'Burgers',
+    image: 'https://placehold.co/300x300.png',
+    stock: 0,
+    ingredients: [],
+  },
+];
+
+export const initialOrders: Order[] = [
+  {
+    id: 'ord1',
+    items: [
+      { productId: 'prod1', name: 'Classic Burger', price: 8.99, quantity: 1, image: 'https://placehold.co/300x300.png' },
+      { productId: 'prod3', name: 'Fries', price: 3.49, quantity: 1, image: 'https://placehold.co/300x300.png' },
+      { productId: 'prod4', name: 'Cola', price: 1.99, quantity: 1, image: 'https://placehold.co/300x300.png' },
+    ],
+    total: 14.47,
+    timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+    status: 'Preparing',
+    paymentMethod: 'Card',
+    customerName: 'John Doe',
+  },
+  {
+    id: 'ord2',
+    items: [
+      { productId: 'prod2', name: 'Double Cheeseburger', price: 11.99, quantity: 2, image: 'https://placehold.co/300x300.png' },
+    ],
+    total: 23.98,
+    timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+    status: 'Preparing',
+    paymentMethod: 'Cash',
+  },
+  {
+    id: 'ord3',
+    items: [
+      { productId: 'prod5', name: 'Veggie Burger', price: 9.99, quantity: 1, image: 'https://placehold.co/300x300.png' },
+      { productId: 'prod6', name: 'Onion Rings', price: 4.49, quantity: 1, image: 'https://placehold.co/300x300.png' },
+    ],
+    total: 14.48,
+    timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+    status: 'Ready',
+    paymentMethod: 'Card',
+    customerName: 'Jane Smith',
+  },
+    {
+    id: 'ord4',
+    items: [
+      { productId: 'prod1', name: 'Classic Burger', price: 8.99, quantity: 2, image: 'https://placehold.co/300x300.png' },
+    ],
+    total: 17.98,
+    timestamp: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+    status: 'Delivered',
+    paymentMethod: 'Card',
+    customerName: 'Peter Jones',
+  },
+];
