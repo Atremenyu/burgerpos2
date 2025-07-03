@@ -4,6 +4,7 @@
 import * as React from "react";
 import AppShell from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import {
   Table,
   TableBody,
@@ -57,6 +58,7 @@ const productSchema = z.object({
   category: z.string().min(1, { message: "La categoría es requerida." }),
   price: z.coerce.number().positive({ message: "El precio debe ser un número positivo." }),
   stock: z.coerce.number().int().min(0, { message: "Las existencias no pueden ser negativas." }),
+  image: z.string().optional(),
 });
 
 const ingredientSchema = z.object({
@@ -71,6 +73,7 @@ export default function InventoryPage() {
 
   const [isProductDialogOpen, setIsProductDialogOpen] = React.useState(false);
   const [editingProduct, setEditingProduct] = React.useState<Product | null>(null);
+  const [imagePreview, setImagePreview] = React.useState<string | null>(null);
 
   const [isIngredientDialogOpen, setIsIngredientDialogOpen] = React.useState(false);
   const [editingIngredient, setEditingIngredient] = React.useState<Ingredient | null>(null);
@@ -80,7 +83,7 @@ export default function InventoryPage() {
   
   const productForm = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
-    defaultValues: { name: '', category: '', price: 0, stock: 0 },
+    defaultValues: { name: '', category: '', price: 0, stock: 0, image: '' },
   });
   
   const ingredientForm = useForm<z.infer<typeof ingredientSchema>>({
@@ -90,12 +93,20 @@ export default function InventoryPage() {
 
   React.useEffect(() => {
     if (isProductDialogOpen) {
-      productForm.reset(editingProduct ? {
-        name: editingProduct.name,
-        category: editingProduct.category,
-        price: editingProduct.price,
-        stock: editingProduct.stock,
-      } : { name: '', category: '', price: 0, stock: 0 });
+      const defaultValues = editingProduct
+        ? {
+            name: editingProduct.name,
+            category: editingProduct.category,
+            price: editingProduct.price,
+            stock: editingProduct.stock,
+            image: editingProduct.image,
+          }
+        : { name: '', category: '', price: 0, stock: 0, image: 'https://placehold.co/300x300.png' };
+      
+      productForm.reset(defaultValues);
+      setImagePreview(defaultValues.image);
+    } else {
+        setImagePreview(null);
     }
   }, [isProductDialogOpen, editingProduct, productForm]);
 
@@ -114,9 +125,12 @@ export default function InventoryPage() {
       setProducts(prev => prev.map(p => p.id === editingProduct.id ? { ...editingProduct, ...data } : p));
     } else {
       const newProduct: Product = {
-        ...data,
         id: `prod${Date.now()}`,
-        image: 'https://placehold.co/300x300.png',
+        name: data.name,
+        category: data.category,
+        price: data.price,
+        stock: data.stock,
+        image: data.image || 'https://placehold.co/300x300.png',
         ingredients: [],
       };
       setProducts(prev => [newProduct, ...prev]);
@@ -208,6 +222,7 @@ export default function InventoryPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Imagen</TableHead>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Categoría</TableHead>
                 <TableHead>Precio</TableHead>
@@ -218,6 +233,16 @@ export default function InventoryPage() {
             <TableBody>
               {products.map((product) => (
                 <TableRow key={product.id}>
+                  <TableCell>
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      width={40}
+                      height={40}
+                      className="rounded-md object-cover"
+                      data-ai-hint="burger food"
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{product.category}</TableCell>
                   <TableCell>${product.price.toFixed(2)}</TableCell>
@@ -323,6 +348,45 @@ export default function InventoryPage() {
                   </FormItem>
                 )}
               />
+               <FormField
+                control={productForm.control}
+                name="image"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Imagen del Producto</FormLabel>
+                    <FormControl>
+                      <div className="flex flex-col gap-2">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                const dataUrl = reader.result as string;
+                                field.onChange(dataUrl);
+                                setImagePreview(dataUrl);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                        {imagePreview && (
+                          <Image
+                            src={imagePreview}
+                            alt="Vista previa del producto"
+                            width={100}
+                            height={100}
+                            className="rounded-md object-cover"
+                          />
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsProductDialogOpen(false)}>Cancelar</Button>
                 <Button type="submit">Guardar</Button>
@@ -414,5 +478,3 @@ export default function InventoryPage() {
     </AppShell>
   );
 }
-
-    
