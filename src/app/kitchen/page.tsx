@@ -1,41 +1,16 @@
+
 "use client";
 
 import * as React from "react";
 import AppShell from "@/components/AppShell";
 import OrderCard from "@/components/kitchen/OrderCard";
-import { initialOrders } from "@/lib/data";
 import type { Order } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence, motion } from "framer-motion";
+import { useAppContext } from "@/context/AppContext";
 
 export default function KitchenPage() {
-  const [orders, setOrders] = React.useState<Order[]>(initialOrders);
-
-  const updateOrderStatus = (orderId: string, status: Order["status"], prepTime?: number) => {
-    setOrders(prevOrders =>
-      prevOrders.map(order =>
-        order.id === orderId ? { ...order, status, ...(prepTime && { prepTime }) } : order
-      )
-    );
-  };
-  
-  // Simulate real-time order updates
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      const newOrder: Order = {
-        id: `ord${Date.now()}`,
-        items: [{ productId: 'prod1', name: 'Hamburguesa Clásica', price: 8.99, quantity: 1, image: 'https://placehold.co/300x300.png' }],
-        total: 8.99,
-        timestamp: new Date().toISOString(),
-        status: 'Pendiente',
-        paymentMethod: 'Tarjeta',
-        customerName: 'Nuevo Cliente'
-      };
-      setOrders(prev => [newOrder, ...prev]);
-    }, 30000); // Add a new order every 30 seconds
-
-    return () => clearInterval(interval);
-  }, []);
+  const { orders, updateOrderStatus } = useAppContext();
 
   const pendingOrders = orders.filter(o => o.status === 'Pendiente');
   const preparingOrders = orders.filter(o => o.status === 'Preparando');

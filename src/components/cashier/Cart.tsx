@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -10,9 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus, Minus, X, ShoppingBag, CheckCircle, CreditCard, DollarSign } from "lucide-react";
+import { Plus, Minus, ShoppingBag, CheckCircle, CreditCard, DollarSign } from "lucide-react";
 import type { CartItem } from "@/types";
 import { cn } from "@/lib/utils";
+import { useAppContext } from "@/context/AppContext";
 
 interface CartProps {
   cart: CartItem[];
@@ -21,6 +23,7 @@ interface CartProps {
 }
 
 export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps) {
+  const { addOrder } = useAppContext();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [paymentStep, setPaymentStep] = React.useState(1);
   const [paymentMethod, setPaymentMethod] = React.useState<"Efectivo" | "Tarjeta">("Tarjeta");
@@ -34,7 +37,7 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
   };
   
   const handleConfirmPayment = () => {
-    // Here you would typically call an API to process the order
+    addOrder(cart, total, paymentMethod, customerName);
     setPaymentStep(2);
   };
   
@@ -101,7 +104,7 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
         )}
       </Card>
       
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <Dialog open={isModalOpen} onOpenChange={handleCloseModal}>
         <DialogContent className="sm:max-w-md">
           {paymentStep === 1 && (
             <>

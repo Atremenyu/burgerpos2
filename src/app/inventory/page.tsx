@@ -46,12 +46,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { products as initialProducts, ingredients as initialIngredients } from "@/lib/data";
 import type { Product, Ingredient } from "@/types";
 import { PlusCircle, Download, Edit, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useAppContext } from "@/context/AppContext";
 
 const productSchema = z.object({
   name: z.string().min(1, { message: "El nombre es requerido." }),
@@ -68,8 +68,16 @@ const ingredientSchema = z.object({
 });
 
 export default function InventoryPage() {
-  const [products, setProducts] = React.useState<Product[]>(initialProducts);
-  const [ingredients, setIngredients] = React.useState<Ingredient[]>(initialIngredients);
+  const { 
+    products, 
+    ingredients, 
+    addProduct, 
+    updateProduct, 
+    deleteProduct, 
+    addIngredient, 
+    updateIngredient, 
+    deleteIngredient 
+  } = useAppContext();
 
   const [isProductDialogOpen, setIsProductDialogOpen] = React.useState(false);
   const [editingProduct, setEditingProduct] = React.useState<Product | null>(null);
@@ -107,6 +115,7 @@ export default function InventoryPage() {
       setImagePreview(defaultValues.image);
     } else {
         setImagePreview(null);
+        setEditingProduct(null);
     }
   }, [isProductDialogOpen, editingProduct, productForm]);
 
@@ -117,36 +126,25 @@ export default function InventoryPage() {
         stock: editingIngredient.stock,
         unit: editingIngredient.unit,
       } : { name: '', stock: 0, unit: 'pcs' });
+    } else {
+      setEditingIngredient(null);
     }
   }, [isIngredientDialogOpen, editingIngredient, ingredientForm]);
   
   const handleProductSubmit = (data: z.infer<typeof productSchema>) => {
     if (editingProduct) {
-      setProducts(prev => prev.map(p => p.id === editingProduct.id ? { ...editingProduct, ...data } : p));
+      updateProduct({ ...editingProduct, ...data, image: data.image || editingProduct.image });
     } else {
-      const newProduct: Product = {
-        id: `prod${Date.now()}`,
-        name: data.name,
-        category: data.category,
-        price: data.price,
-        stock: data.stock,
-        image: data.image || 'https://placehold.co/300x300.png',
-        ingredients: [],
-      };
-      setProducts(prev => [newProduct, ...prev]);
+      addProduct({ ...data, image: data.image || 'https://placehold.co/300x300.png' });
     }
     setIsProductDialogOpen(false);
   };
   
   const handleIngredientSubmit = (data: z.infer<typeof ingredientSchema>) => {
     if (editingIngredient) {
-      setIngredients(prev => prev.map(i => i.id === editingIngredient.id ? { ...editingIngredient, ...data } : i));
+      updateIngredient({ ...editingIngredient, ...data });
     } else {
-      const newIngredient: Ingredient = {
-        ...data,
-        id: `ing${Date.now()}`,
-      };
-      setIngredients(prev => [newIngredient, ...prev]);
+      addIngredient(data);
     }
     setIsIngredientDialogOpen(false);
   };
@@ -154,9 +152,9 @@ export default function InventoryPage() {
   const handleDeleteConfirm = () => {
     if (!deletingItem) return;
     if (deletingItem.type === 'product') {
-      setProducts(prev => prev.filter(p => p.id !== deletingItem.id));
+      deleteProduct(deletingItem.id);
     } else {
-      setIngredients(prev => prev.filter(i => i.id !== deletingItem.id));
+      deleteIngredient(deletingItem.id);
     }
     setIsDeleteDialogOpen(false);
     setDeletingItem(null);

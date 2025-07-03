@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -7,13 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ProductCard from "@/components/cashier/ProductCard";
 import Cart from "@/components/cashier/Cart";
-import { products as initialProducts } from "@/lib/data";
 import type { Product, CartItem } from "@/types";
 import { LayoutGrid, List, PlusCircle } from "lucide-react";
 import Image from "next/image";
+import { useAppContext } from "@/context/AppContext";
 
 export default function CashierPage() {
-  const [products] = React.useState<Product[]>(initialProducts);
+  const { products } = useAppContext();
   const [cart, setCart] = React.useState<CartItem[]>([]);
   const [view, setView] = React.useState<'grid' | 'list'>('grid');
   
