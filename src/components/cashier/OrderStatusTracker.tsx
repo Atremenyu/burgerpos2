@@ -8,10 +8,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { Order } from "@/types";
-import { BellRing, Check, Clock, Flame, AlarmClock } from "lucide-react";
+import { BellRing, Check, Clock, Flame, AlarmClock, CheckCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
 
 const NOTIFICATION_SOUND_URL = "https://actions.google.com/sounds/v1/alarms/dinner_bell_triangle.ogg";
 
@@ -23,7 +24,7 @@ const statusConfig: Record<Order['status'], { icon: React.ElementType; color: st
 };
 
 export default function OrderStatusTracker() {
-    const { orders } = useAppContext();
+    const { orders, updateOrderStatus } = useAppContext();
     const prevOrdersRef = React.useRef<Order[]>([]);
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
@@ -90,10 +91,23 @@ export default function OrderStatusTracker() {
                                               )}
                                             </div>
                                         </div>
-                                        <Badge className={cn("text-white", config.color)}>
-                                            <Icon className="mr-1 h-3 w-3" />
-                                            {config.label}
-                                        </Badge>
+                                        <div className="flex items-center shrink-0 gap-2">
+                                            <Badge className={cn("text-white", config.color)}>
+                                                <Icon className="mr-1 h-3 w-3" />
+                                                {config.label}
+                                            </Badge>
+                                             {order.status === 'Listo' && (
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 rounded-full text-green-500 hover:text-green-600 hover:bg-green-100 dark:hover:bg-green-900"
+                                                    onClick={() => updateOrderStatus(order.id, 'Entregado')}
+                                                    aria-label="Marcar como entregado"
+                                                >
+                                                    <CheckCheck className="h-5 w-5" />
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
                                 )
                             })}

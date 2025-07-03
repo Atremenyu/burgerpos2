@@ -55,8 +55,6 @@ function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
   const handleNextStatus = () => {
     if (order.status === 'Preparando') {
       onUpdateStatus(order.id, 'Listo');
-    } else if (order.status === 'Listo') {
-      onUpdateStatus(order.id, 'Entregado');
     }
   };
   
@@ -103,10 +101,10 @@ function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
       );
     }
 
-    if (order.status !== 'Entregado') {
+    if (order.status === 'Preparando') {
        return (
           <Button className="w-full" onClick={handleNextStatus}>
-            {order.status === 'Preparando' ? 'Marcar como Listo' : 'Marcar como Entregado'}
+            Marcar como Listo
           </Button>
        )
     }
