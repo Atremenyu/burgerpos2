@@ -2,6 +2,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import type { Product, Ingredient, Order, CartItem, Category, Expense, Customer, User, Shift, Role, CurrentUser } from "@/types";
 import { products as initialProducts, ingredients as initialIngredients, categories as initialCategories, users as initialUsers, roles as initialRoles } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
@@ -45,6 +46,7 @@ const AppContext = React.createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
+  const router = useRouter();
   const [products, setProducts] = React.useState<Product[]>(initialProducts);
   const [ingredients, setIngredients] = React.useState<Ingredient[]>(initialIngredients);
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
@@ -241,7 +243,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setActiveShift(null);
     }
     setCurrentUser(null);
-  }, [activeShift]);
+    router.push('/');
+  }, [activeShift, router]);
   
   const endDay = React.useCallback(() => {
     if (currentUser) {
