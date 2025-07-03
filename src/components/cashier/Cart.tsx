@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -88,7 +87,6 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
   const handleSuggestionClick = React.useCallback((customer: Customer) => {
     setCustomerName(customer.name);
     setCustomerPhone(customer.phone);
-    setSuggestions([]);
     setIsSuggestionsOpen(false);
   }, []);
 
@@ -159,47 +157,42 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
                  </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
-                 <div className="space-y-2">
+                 <div className="space-y-2 relative">
                     <Label htmlFor="customerName">Nombre del Cliente (Opcional)</Label>
-                    <Popover open={isSuggestionsOpen} onOpenChange={setIsSuggestionsOpen}>
-                      <PopoverTrigger asChild>
-                        <Input
-                          id="customerName"
-                          placeholder="John Doe"
-                          value={customerName}
-                          onChange={handleNameChange}
-                          autoComplete="off"
-                        />
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                        <ScrollArea className="max-h-60">
-                          <div className="p-1">
-                            {suggestions.length > 0 ? (
-                              suggestions.map((customer) => (
-                                <button
-                                  key={customer.name}
-                                  className="w-full text-left p-2 text-sm rounded-md hover:bg-accent focus:bg-accent focus:outline-none"
-                                  onClick={() => handleSuggestionClick(customer)}
-                                >
-                                  <p className="font-medium">{customer.name}</p>
-                                  {customer.phone && (
-                                    <p className="text-xs text-muted-foreground">{customer.phone}</p>
-                                  )}
-                                </button>
-                              ))
-                            ) : (
-                               <div className="p-2 text-center text-sm text-muted-foreground">
-                                {customerName.trim().length > 0 ? (
-                                    'Se creará un nuevo cliente.'
-                                ) : (
-                                    'Comienza a escribir para buscar o crear un cliente.'
+                    <Input
+                      id="customerName"
+                      placeholder="John Doe"
+                      value={customerName}
+                      onChange={handleNameChange}
+                      onFocus={() => customerName && setIsSuggestionsOpen(true)}
+                      onBlur={() => setTimeout(() => setIsSuggestionsOpen(false), 150)}
+                      autoComplete="off"
+                    />
+                    {isSuggestionsOpen && (
+                      <Card className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto shadow-lg">
+                        <CardContent className="p-1">
+                          {suggestions.length > 0 ? (
+                            suggestions.map((customer) => (
+                              <button
+                                key={customer.name}
+                                type="button"
+                                className="w-full text-left p-2 text-sm rounded-md hover:bg-accent focus:bg-accent focus:outline-none"
+                                onMouseDown={() => handleSuggestionClick(customer)}
+                              >
+                                <p className="font-medium">{customer.name}</p>
+                                {customer.phone && (
+                                  <p className="text-xs text-muted-foreground">{customer.phone}</p>
                                 )}
-                                </div>
-                            )}
-                          </div>
-                        </ScrollArea>
-                      </PopoverContent>
-                    </Popover>
+                              </button>
+                            ))
+                          ) : (
+                             <div className="p-2 text-center text-sm text-muted-foreground">
+                              Se creará un nuevo cliente.
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
                   </div>
                 <div className="space-y-2">
                     <Label htmlFor="customerPhone">Teléfono del Cliente (Opcional)</Label>
