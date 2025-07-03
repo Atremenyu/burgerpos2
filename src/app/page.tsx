@@ -9,10 +9,13 @@ import ProductCard from "@/components/cashier/ProductCard";
 import Cart from "@/components/cashier/Cart";
 import { products as initialProducts } from "@/lib/data";
 import type { Product, CartItem } from "@/types";
+import { LayoutGrid, List, PlusCircle } from "lucide-react";
+import Image from "next/image";
 
 export default function CashierPage() {
   const [products] = React.useState<Product[]>(initialProducts);
   const [cart, setCart] = React.useState<CartItem[]>([]);
+  const [view, setView] = React.useState<'grid' | 'list'>('grid');
   
   const categories = ["Todos", ...Array.from(new Set(products.map(p => p.category)))];
 
@@ -45,6 +48,10 @@ export default function CashierPage() {
     setCart([]);
   };
 
+  const filteredProducts = (category: string) => {
+      return category === "Todos" ? products : products.filter(p => p.category === category);
+  }
+
   return (
     <AppShell>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start h-full">
@@ -52,20 +59,60 @@ export default function CashierPage() {
           <Card className="h-full shadow-lg dark:bg-gray-800/60">
             <CardContent className="p-4 md:p-6 h-full flex flex-col">
               <Tabs defaultValue="Todos" className="flex-grow flex flex-col">
-                <TabsList className="mb-4 bg-gray-200 dark:bg-gray-900">
-                  {categories.map(category => (
-                    <TabsTrigger key={category} value={category} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                      {category}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
+                <div className="flex justify-between items-center mb-4">
+                  <TabsList className="bg-gray-200 dark:bg-gray-900">
+                    {categories.map(category => (
+                      <TabsTrigger key={category} value={category} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        {category}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                   <div className="flex items-center gap-2">
+                    <Button variant={view === 'grid' ? 'default' : 'outline'} size="icon" onClick={() => setView('grid')} aria-label="Vista de cuadrícula">
+                        <LayoutGrid className="h-4 w-4" />
+                    </Button>
+                    <Button variant={view === 'list' ? 'default' : 'outline'} size="icon" onClick={() => setView('list')} aria-label="Vista de lista">
+                        <List className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
                 {categories.map(category => (
                   <TabsContent key={category} value={category} className="flex-grow overflow-auto">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                      {(category === "Todos" ? products : products.filter(p => p.category === category)).map(product => (
-                        <ProductCard key={product.id} product={product} onAddToCart={() => addToCart(product)} />
-                      ))}
-                    </div>
+                    {view === 'grid' ? (
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        {filteredProducts(category).map(product => (
+                          <ProductCard key={product.id} product={product} onAddToCart={() => addToCart(product)} />
+                        ))}
+                      </div>
+                    ) : (
+                       <div className="space-y-2">
+                        {filteredProducts(category).map(product => (
+                           <div key={product.id} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50 border">
+                            <Image
+                                src={product.image}
+                                alt={product.name}
+                                width={56}
+                                height={56}
+                                className="rounded-md object-cover"
+                                data-ai-hint="burger food"
+                            />
+                            <div className="flex-grow">
+                                <p className="font-semibold">{product.name}</p>
+                                <p className="text-sm text-muted-foreground">${product.price.toFixed(2)}</p>
+                            </div>
+                            <Button
+                                size="sm"
+                                onClick={() => addToCart(product)}
+                                disabled={product.stock === 0}
+                                className="shrink-0"
+                             >
+                                <PlusCircle className="mr-2 h-4 w-4" /> Añadir
+                            </Button>
+                        </div>
+                        ))}
+                      </div>
+                    )}
                   </TabsContent>
                 ))}
               </Tabs>
