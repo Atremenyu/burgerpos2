@@ -225,7 +225,7 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
                     <RadioGroup value={orderType} onValueChange={(value: string) => {
                         setOrderType(value);
                         if (value !== 'Para Llevar') setDeliveryPlatform(undefined);
-                    }} className="flex gap-4">
+                    }} className="grid grid-cols-2 gap-4">
                         {orderTypes.map(ot => {
                           const Icon = orderTypeIcons[ot.name] || Utensils;
                           return (

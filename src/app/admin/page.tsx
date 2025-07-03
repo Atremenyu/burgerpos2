@@ -248,7 +248,7 @@ export default function AdminPage() {
         <h1 className="text-3xl font-bold">Panel de Administración</h1>
 
         <Tabs defaultValue="users">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-1 gap-1.5 sm:grid-cols-3">
                 <TabsTrigger value="users">Gestión de Usuarios</TabsTrigger>
                 <TabsTrigger value="roles">Gestión de Roles</TabsTrigger>
                 <TabsTrigger value="settings">Configuración del Sistema</TabsTrigger>

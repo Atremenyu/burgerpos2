@@ -34,7 +34,7 @@ export default function KitchenPage() {
       <div className="flex flex-col h-full">
         <h1 className="text-3xl font-bold mb-6">Sistema de Pantalla de Cocina</h1>
         <Tabs defaultValue="pending" className="flex-grow flex flex-col">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
             <TabsTrigger value="pending">Pendiente ({pendingOrders.length})</TabsTrigger>
             <TabsTrigger value="preparing">Preparando ({preparingOrders.length})</TabsTrigger>
             <TabsTrigger value="ready">Listo ({readyOrders.length})</TabsTrigger>

@@ -279,7 +279,7 @@ export default function InventoryPage() {
         <h1 className="text-3xl font-bold">Gestión de Inventario</h1>
       </div>
       <Tabs defaultValue="products" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-1 gap-1.5 sm:grid-cols-3">
           <TabsTrigger value="products">Productos</TabsTrigger>
           <TabsTrigger value="ingredients">Ingredientes</TabsTrigger>
           <TabsTrigger value="categories">Categorías</TabsTrigger>

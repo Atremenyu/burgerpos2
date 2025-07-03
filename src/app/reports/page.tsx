@@ -210,7 +210,7 @@ export default function ReportsPage() {
       <div className="flex flex-col gap-8">
         <h1 className="text-3xl font-bold">Panel de Informes</h1>
         <Tabs defaultValue="daily">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-6">
             <TabsTrigger value="daily">Informe Diario</TabsTrigger>
             <TabsTrigger value="monthly">Resumen Mensual</TabsTrigger>
             <TabsTrigger value="shifts">Turnos</TabsTrigger>
@@ -239,7 +239,7 @@ export default function ReportsPage() {
                  </Card>
                </div>
                <div className="lg:col-span-2 space-y-8">
-                <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
                      <StatCard
                         title="Ventas del Día"
                         value={`$${dailyStats.totalSales.toFixed(2)}`}
@@ -297,7 +297,7 @@ export default function ReportsPage() {
           </TabsContent>
 
           <TabsContent value="monthly" className="mt-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard
                 title="Ventas del Mes"
                 value={`$${monthlyStats.totalSales.toFixed(2)}`}
@@ -320,7 +320,7 @@ export default function ReportsPage() {
                 change={monthlyStats.topProduct.units}
               />
             </div>
-            <div className="grid gap-8 lg:grid-cols-2 mt-8">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 mt-8">
               <SalesChart />
               <TopProductsChart />
             </div>
