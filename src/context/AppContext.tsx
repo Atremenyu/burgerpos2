@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import type { Product, Ingredient, Order, CartItem, Category } from "@/types";
+import type { Product, Ingredient, Order, CartItem, Category, Expense } from "@/types";
 import { products as initialProducts, ingredients as initialIngredients, categories as initialCategories } from "@/lib/data";
 
 interface AppContextType {
@@ -10,6 +10,7 @@ interface AppContextType {
   ingredients: Ingredient[];
   categories: Category[];
   orders: Order[];
+  expenses: Expense[];
   addProduct: (product: Omit<Product, 'id' | 'ingredients'>) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
@@ -21,6 +22,8 @@ interface AppContextType {
   deleteCategory: (categoryId: string) => void;
   addOrder: (cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", customerName?: string, customerPhone?: string) => void;
   updateOrderStatus: (orderId: string, status: Order['status'], prepTime?: number) => void;
+  addExpense: (expense: Omit<Expense, 'id' | 'timestamp'>) => void;
+  deleteExpense: (expenseId: string) => void;
 }
 
 const AppContext = React.createContext<AppContextType | undefined>(undefined);
@@ -30,6 +33,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [ingredients, setIngredients] = React.useState<Ingredient[]>(initialIngredients);
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
   const [orders, setOrders] = React.useState<Order[]>([]);
+  const [expenses, setExpenses] = React.useState<Expense[]>([]);
 
   const addProduct = (productData: Omit<Product, 'id' | 'ingredients'>) => {
     const newProduct: Product = {
@@ -102,11 +106,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     );
   };
   
+  const addExpense = (expenseData: Omit<Expense, 'id' | 'timestamp'>) => {
+    const newExpense: Expense = {
+      id: `exp${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      ...expenseData,
+    };
+    setExpenses(prev => [newExpense, ...prev]);
+  };
+
+  const deleteExpense = (expenseId: string) => {
+    setExpenses(prev => prev.filter(e => e.id !== expenseId));
+  };
+
   const value = {
     products,
     ingredients,
     categories,
     orders,
+    expenses,
     addProduct,
     updateProduct,
     deleteProduct,
@@ -117,7 +135,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     updateCategory,
     deleteCategory,
     addOrder,
-    updateOrderStatus
+    updateOrderStatus,
+    addExpense,
+    deleteExpense,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

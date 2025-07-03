@@ -53,5 +53,3 @@ export const products: Product[] = [
     ingredients: [{ ingredientId: 'ing7', quantity: 300 }],
   },
 ];
-
-export const initialOrders: Order[] = [];

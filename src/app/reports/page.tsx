@@ -6,7 +6,7 @@ import AppShell from "@/components/AppShell";
 import StatCard from "@/components/reports/StatCard";
 import SalesChart from "@/components/reports/SalesChart";
 import TopProductsChart from "@/components/reports/TopProductsChart";
-import { DollarSign, ShoppingCart, UtensilsCrossed, Calendar as CalendarIcon, History, Users } from "lucide-react";
+import { DollarSign, ShoppingCart, UtensilsCrossed, Calendar as CalendarIcon, History, Users, FileText, PlusCircle, Trash2 } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import { isWithinInterval, startOfMonth, format, isSameDay, startOfDay, endOfDay } from "date-fns";
 import { es } from "date-fns/locale";
@@ -16,16 +16,30 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import type { Order, Product } from "@/types";
+import type { Order, Product, Expense } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
-const calculateStats = (ordersToProcess: Order[], products: Product[]) => {
+const expenseSchema = z.object({
+  description: z.string().min(1, { message: "La descripción es requerida." }),
+  amount: z.coerce.number().positive({ message: "El monto debe ser un número positivo." }),
+});
+
+const calculateStats = (ordersToProcess: Order[], products: Product[], expensesToProcess: Expense[]) => {
+  const totalExpenses = expensesToProcess.reduce((total, expense) => total + expense.amount, 0);
+  
   if (ordersToProcess.length === 0) {
     return {
       totalSales: 0,
       orderCount: 0,
       topProduct: { name: "N/A", units: "0 unidades" },
+      totalExpenses,
     };
   }
 
@@ -50,7 +64,7 @@ const calculateStats = (ordersToProcess: Order[], products: Product[]) => {
     };
   }
 
-  return { totalSales, orderCount, topProduct };
+  return { totalSales, orderCount, topProduct, totalExpenses };
 };
 
 type CustomerData = {
@@ -62,26 +76,37 @@ type CustomerData = {
 };
 
 export default function ReportsPage() {
-  const { orders, products } = useAppContext();
+  const { orders, products, expenses, addExpense, deleteExpense } = useAppContext();
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
   const [selectedCustomer, setSelectedCustomer] = React.useState<CustomerData | null>(null);
+
+  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = React.useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [deletingItem, setDeletingItem] = React.useState<{ type: 'expense'; id: string; name: string } | null>(null);
+
+  const expenseForm = useForm<z.infer<typeof expenseSchema>>({
+    resolver: zodResolver(expenseSchema),
+    defaultValues: { description: '', amount: 0 },
+  });
 
   const monthlyStats = React.useMemo(() => {
     const today = new Date();
     const monthStart = startOfMonth(today);
     const monthlyOrders = orders.filter(order => isWithinInterval(new Date(order.timestamp), { start: monthStart, end: today }));
-    return calculateStats(monthlyOrders, products);
-  }, [orders, products]);
+    const monthlyExpenses = expenses.filter(expense => isWithinInterval(new Date(expense.timestamp), { start: monthStart, end: today }));
+    return calculateStats(monthlyOrders, products, monthlyExpenses);
+  }, [orders, products, expenses]);
 
   const dailyStats = React.useMemo(() => {
     if (!selectedDate) {
-      return calculateStats([], products);
+      return calculateStats([], products, []);
     }
     const dayStart = startOfDay(selectedDate);
     const dayEnd = endOfDay(selectedDate);
     const dailyOrders = orders.filter(order => isWithinInterval(new Date(order.timestamp), { start: dayStart, end: dayEnd }));
-    return calculateStats(dailyOrders, products);
-  }, [orders, products, selectedDate]);
+    const dailyExpenses = expenses.filter(expense => isWithinInterval(new Date(expense.timestamp), { start: dayStart, end: dayEnd }));
+    return calculateStats(dailyOrders, products, dailyExpenses);
+  }, [orders, products, expenses, selectedDate]);
   
   const dailyOrders = React.useMemo(() => {
     if (!selectedDate) return [];
@@ -113,15 +138,36 @@ export default function ReportsPage() {
         totalSpent: c.orders.reduce((sum, o) => sum + o.total, 0)
     })).sort((a,b) => b.totalSpent - a.totalSpent);
   }, [orders]);
+
+  const handleExpenseSubmit = (data: z.infer<typeof expenseSchema>) => {
+    addExpense(data);
+    setIsExpenseDialogOpen(false);
+    expenseForm.reset();
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deletingItem) return;
+    if (deletingItem.type === 'expense') {
+      deleteExpense(deletingItem.id);
+    }
+    setIsDeleteDialogOpen(false);
+    setDeletingItem(null);
+  };
+  
+  const openDeleteDialog = (item: { type: 'expense'; id: string; name: string }) => {
+    setDeletingItem(item);
+    setIsDeleteDialogOpen(true);
+  };
   
   return (
     <AppShell>
       <div className="flex flex-col gap-8">
         <h1 className="text-3xl font-bold">Panel de Informes</h1>
         <Tabs defaultValue="daily">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="daily">Informe Diario</TabsTrigger>
             <TabsTrigger value="monthly">Resumen Mensual</TabsTrigger>
+            <TabsTrigger value="expenses">Gastos</TabsTrigger>
             <TabsTrigger value="history">Historial de Pedidos</TabsTrigger>
             <TabsTrigger value="customers">Clientes</TabsTrigger>
           </TabsList>
@@ -146,11 +192,16 @@ export default function ReportsPage() {
                  </Card>
                </div>
                <div className="lg:col-span-2 space-y-8">
-                <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
                      <StatCard
                         title="Ventas del Día"
                         value={`$${dailyStats.totalSales.toFixed(2)}`}
                         icon={DollarSign}
+                    />
+                    <StatCard
+                        title="Gastos del Día"
+                        value={`$${dailyStats.totalExpenses.toFixed(2)}`}
+                        icon={FileText}
                     />
                     <StatCard
                         title="Pedidos del Día"
@@ -196,11 +247,16 @@ export default function ReportsPage() {
           </TabsContent>
 
           <TabsContent value="monthly" className="mt-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <StatCard
                 title="Ventas del Mes"
                 value={`$${monthlyStats.totalSales.toFixed(2)}`}
                 icon={DollarSign}
+              />
+               <StatCard
+                title="Gastos del Mes"
+                value={`$${monthlyStats.totalExpenses.toFixed(2)}`}
+                icon={FileText}
               />
               <StatCard
                 title="Pedidos del Mes"
@@ -218,6 +274,53 @@ export default function ReportsPage() {
               <SalesChart />
               <TopProductsChart />
             </div>
+          </TabsContent>
+
+          <TabsContent value="expenses" className="mt-6">
+            <Card>
+              <CardHeader className="flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" /> Registro de Gastos</CardTitle>
+                  <CardDescription>Añade y gestiona los gastos de tu negocio.</CardDescription>
+                </div>
+                <Button onClick={() => setIsExpenseDialogOpen(true)}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Añadir Gasto
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[600px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Descripción</TableHead>
+                        <TableHead>Monto</TableHead>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead>Acciones</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {expenses.length > 0 ? [...expenses].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map(expense => (
+                        <TableRow key={expense.id}>
+                          <TableCell className="font-medium">{expense.description}</TableCell>
+                          <TableCell>${expense.amount.toFixed(2)}</TableCell>
+                          <TableCell>{format(new Date(expense.timestamp), 'PPp', { locale: es })}</TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => openDeleteDialog({ type: 'expense', id: expense.id, name: expense.description })}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )) : (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center">No hay gastos registrados.</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="history" className="mt-6">
@@ -341,6 +444,62 @@ export default function ReportsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      <Dialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Añadir Gasto</DialogTitle>
+            <DialogDescription>
+              Registra un nuevo gasto para tu negocio.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...expenseForm}>
+            <form onSubmit={expenseForm.handleSubmit(handleExpenseSubmit)} className="space-y-4 py-4">
+              <FormField
+                control={expenseForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descripción</FormLabel>
+                    <FormControl><Input {...field} placeholder="Ej: Compra de carne" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={expenseForm.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Monto</FormLabel>
+                    <FormControl><Input type="number" step="0.01" {...field} placeholder="Ej: 50.00" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsExpenseDialogOpen(false)}>Cancelar</Button>
+                <Button type="submit">Guardar Gasto</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Esto eliminará permanentemente "{deletingItem?.name}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm}>Eliminar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }
