@@ -43,6 +43,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import type { User, Role, OrderType, PaymentMethod, DeliveryPlatform } from "@/types";
+import LoginScreen from "@/components/cashier/LoginScreen";
 
 const userSchema = z.object({
   name: z.string().min(1, "El nombre es requerido."),
@@ -197,7 +198,11 @@ export default function AdminPage() {
     setIsSettingDialogOpen(true);
   };
 
-  if (!context.currentUser?.role.permissions.includes('admin')) {
+  if (!context.currentUser) {
+    return <LoginScreen />;
+  }
+
+  if (!context.currentUser.role.permissions.includes('admin')) {
     return (
         <AppShell>
             <div className="flex flex-col items-center justify-center h-full text-center">
@@ -498,5 +503,3 @@ export default function AdminPage() {
     </AppShell>
   );
 }
-
-    

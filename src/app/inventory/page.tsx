@@ -53,6 +53,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAppContext } from "@/context/AppContext";
 import { useToast } from "@/hooks/use-toast";
+import LoginScreen from "@/components/cashier/LoginScreen";
 
 const productSchema = z.object({
   name: z.string().min(1, { message: "El nombre es requerido." }),
@@ -261,8 +262,12 @@ export default function InventoryPage() {
     link.click();
     document.body.removeChild(link);
   }, []);
+
+  if (!currentUser) {
+    return <LoginScreen />;
+  }
   
-  if (!currentUser?.role.permissions.includes('inventory')) {
+  if (!currentUser.role.permissions.includes('inventory')) {
     return (
         <AppShell>
             <div className="flex flex-col items-center justify-center h-full text-center">

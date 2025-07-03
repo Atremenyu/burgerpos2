@@ -8,6 +8,7 @@ import type { Order } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
+import LoginScreen from "@/components/cashier/LoginScreen";
 
 export default function KitchenPage() {
   const { orders, updateOrderStatus, currentUser } = useAppContext();
@@ -17,7 +18,11 @@ export default function KitchenPage() {
   const readyOrders = orders.filter(o => o.status === 'Listo');
   const deliveredOrders = orders.filter(o => o.status === 'Entregado');
   
-  if (!currentUser?.role.permissions.includes('kitchen')) {
+  if (!currentUser) {
+    return <LoginScreen />;
+  }
+
+  if (!currentUser.role.permissions.includes('kitchen')) {
     return (
         <AppShell>
             <div className="flex flex-col items-center justify-center h-full text-center">

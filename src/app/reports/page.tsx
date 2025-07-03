@@ -26,6 +26,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import LoginScreen from "@/components/cashier/LoginScreen";
 
 const expenseSchema = z.object({
   description: z.string().min(1, { message: "La descripción es requerida." }),
@@ -194,7 +195,11 @@ export default function ReportsPage() {
     setIsDeleteDialogOpen(true);
   }, []);
   
-  if (!currentUser?.role.permissions.includes('reports')) {
+  if (!currentUser) {
+    return <LoginScreen />;
+  }
+
+  if (!currentUser.role.permissions.includes('reports')) {
     return (
         <AppShell>
             <div className="flex flex-col items-center justify-center h-full text-center">
@@ -638,5 +643,3 @@ export default function ReportsPage() {
     </AppShell>
   );
 }
-
-    
