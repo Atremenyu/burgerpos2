@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -83,38 +82,13 @@ export default function ReportsPage() {
     <AppShell>
       <div className="flex flex-col gap-8">
         <h1 className="text-3xl font-bold">Panel de Informes</h1>
-        <Tabs defaultValue="monthly">
+        <Tabs defaultValue="daily">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="monthly">Resumen Mensual</TabsTrigger>
             <TabsTrigger value="daily">Informe Diario</TabsTrigger>
+            <TabsTrigger value="monthly">Resumen Mensual</TabsTrigger>
             <TabsTrigger value="history">Historial de Pedidos</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="monthly" className="mt-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <StatCard
-                title="Ventas del Mes"
-                value={`$${monthlyStats.totalSales.toFixed(2)}`}
-                icon={DollarSign}
-              />
-              <StatCard
-                title="Pedidos del Mes"
-                value={monthlyStats.orderCount.toString()}
-                icon={ShoppingCart}
-              />
-              <StatCard
-                title="Producto más Vendido (Mes)"
-                value={monthlyStats.topProduct.name}
-                icon={UtensilsCrossed}
-                change={monthlyStats.topProduct.units}
-              />
-            </div>
-            <div className="grid gap-8 lg:grid-cols-2 mt-8">
-              <SalesChart />
-              <TopProductsChart />
-            </div>
-          </TabsContent>
-
           <TabsContent value="daily" className="mt-6">
              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                <div className="lg:col-span-1">
@@ -181,6 +155,31 @@ export default function ReportsPage() {
                     </CardContent>
                  </Card>
                </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="monthly" className="mt-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <StatCard
+                title="Ventas del Mes"
+                value={`$${monthlyStats.totalSales.toFixed(2)}`}
+                icon={DollarSign}
+              />
+              <StatCard
+                title="Pedidos del Mes"
+                value={monthlyStats.orderCount.toString()}
+                icon={ShoppingCart}
+              />
+              <StatCard
+                title="Producto más Vendido (Mes)"
+                value={monthlyStats.topProduct.name}
+                icon={UtensilsCrossed}
+                change={monthlyStats.topProduct.units}
+              />
+            </div>
+            <div className="grid gap-8 lg:grid-cols-2 mt-8">
+              <SalesChart />
+              <TopProductsChart />
             </div>
           </TabsContent>
 
