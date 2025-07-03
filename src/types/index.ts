@@ -1,3 +1,4 @@
+
 export type Product = {
   id: string;
   name: string;
@@ -40,6 +41,9 @@ export type Order = {
   customerName?: string;
   customerPhone?: string;
   prepTime?: number;
+  cashierId: string;
+  cashierName: string;
+  shiftId: string;
 };
 
 export type Expense = {
@@ -52,4 +56,20 @@ export type Expense = {
 export type Customer = {
   name: string;
   phone: string;
+};
+
+export type Cashier = {
+  id: string;
+  name: string;
+  pin: string;
+};
+
+export type Shift = {
+  id: string;
+  cashierId: string;
+  cashierName: string;
+  startTime: string;
+  endTime?: string;
+  orders: Order[];
+  totalSales: number;
 };

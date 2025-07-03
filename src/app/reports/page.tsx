@@ -6,9 +6,9 @@ import AppShell from "@/components/AppShell";
 import StatCard from "@/components/reports/StatCard";
 import SalesChart from "@/components/reports/SalesChart";
 import TopProductsChart from "@/components/reports/TopProductsChart";
-import { DollarSign, ShoppingCart, UtensilsCrossed, Calendar as CalendarIcon, History, Users, FileText, PlusCircle, Trash2 } from "lucide-react";
+import { DollarSign, ShoppingCart, UtensilsCrossed, Calendar as CalendarIcon, History, Users, FileText, PlusCircle, Trash2, Briefcase } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
-import { isWithinInterval, startOfMonth, format, isSameDay, startOfDay, endOfDay } from "date-fns";
+import { isWithinInterval, startOfMonth, format, isSameDay, startOfDay, endOfDay, formatDistanceStrict } from "date-fns";
 import { es } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import type { Order, Product, Expense } from "@/types";
+import type { Order, Product, Expense, Customer, Shift } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -76,7 +76,7 @@ type CustomerData = {
 };
 
 export default function ReportsPage() {
-  const { orders, products, expenses, addExpense, deleteExpense } = useAppContext();
+  const { orders, products, expenses, addExpense, deleteExpense, shifts } = useAppContext();
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
   const [selectedCustomer, setSelectedCustomer] = React.useState<CustomerData | null>(null);
 
@@ -164,11 +164,12 @@ export default function ReportsPage() {
       <div className="flex flex-col gap-8">
         <h1 className="text-3xl font-bold">Panel de Informes</h1>
         <Tabs defaultValue="daily">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="daily">Informe Diario</TabsTrigger>
             <TabsTrigger value="monthly">Resumen Mensual</TabsTrigger>
+            <TabsTrigger value="shifts">Turnos</TabsTrigger>
             <TabsTrigger value="expenses">Gastos</TabsTrigger>
-            <TabsTrigger value="history">Historial de Pedidos</TabsTrigger>
+            <TabsTrigger value="history">Historial</TabsTrigger>
             <TabsTrigger value="customers">Clientes</TabsTrigger>
           </TabsList>
           
@@ -276,6 +277,47 @@ export default function ReportsPage() {
             </div>
           </TabsContent>
 
+          <TabsContent value="shifts" className="mt-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Briefcase className="h-5 w-5" /> Historial de Turnos</CardTitle>
+                    <CardDescription>Resumen de todos los turnos de cajero completados.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ScrollArea className="h-[600px]">
+                       <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Cajero</TableHead>
+                                    <TableHead>Fecha</TableHead>
+                                    <TableHead>Inicio</TableHead>
+                                    <TableHead>Fin</TableHead>
+                                    <TableHead>Duración</TableHead>
+                                    <TableHead>Ventas Totales</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {shifts.length > 0 ? [...shifts].sort((a,b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()).map(shift => (
+                                     <TableRow key={shift.id}>
+                                        <TableCell className="font-medium">{shift.cashierName}</TableCell>
+                                        <TableCell>{format(new Date(shift.startTime), 'P', { locale: es })}</TableCell>
+                                        <TableCell>{format(new Date(shift.startTime), 'p', { locale: es })}</TableCell>
+                                        <TableCell>{shift.endTime ? format(new Date(shift.endTime), 'p', { locale: es }) : 'En curso'}</TableCell>
+                                        <TableCell>{shift.endTime ? formatDistanceStrict(new Date(shift.endTime), new Date(shift.startTime), { locale: es, unit: 'minute' }) : '-'}</TableCell>
+                                        <TableCell>${shift.totalSales.toFixed(2)}</TableCell>
+                                    </TableRow>
+                                )) : (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="text-center">No hay turnos completados.</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </ScrollArea>
+                </CardContent>
+              </Card>
+          </TabsContent>
+
           <TabsContent value="expenses" className="mt-6">
             <Card>
               <CardHeader className="flex-row items-center justify-between">
@@ -336,6 +378,7 @@ export default function ReportsPage() {
                                 <TableRow>
                                     <TableHead>Pedido</TableHead>
                                     <TableHead>Fecha</TableHead>
+                                    <TableHead>Cajero</TableHead>
                                     <TableHead>Cliente</TableHead>
                                     <TableHead>Total</TableHead>
                                     <TableHead>Estado</TableHead>
@@ -346,13 +389,14 @@ export default function ReportsPage() {
                                      <TableRow key={order.id}>
                                         <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
                                         <TableCell>{format(new Date(order.timestamp), 'PPp', { locale: es })}</TableCell>
+                                        <TableCell>{order.cashierName}</TableCell>
                                         <TableCell>{order.customerName || 'N/A'}</TableCell>
                                         <TableCell>${order.total.toFixed(2)}</TableCell>
                                         <TableCell><Badge variant="outline">{order.status}</Badge></TableCell>
                                     </TableRow>
                                 )) : (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="text-center">Aún no se han registrado pedidos.</TableCell>
+                                        <TableCell colSpan={6} className="text-center">Aún no se han registrado pedidos.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>

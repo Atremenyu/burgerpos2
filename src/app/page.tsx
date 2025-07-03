@@ -12,9 +12,10 @@ import type { Product, CartItem } from "@/types";
 import { LayoutGrid, List, PlusCircle } from "lucide-react";
 import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
+import LoginScreen from "@/components/cashier/LoginScreen";
 
 export default function CashierPage() {
-  const { products, categories: allCategories } = useAppContext();
+  const { products, categories: allCategories, activeShift } = useAppContext();
   const [cart, setCart] = React.useState<CartItem[]>([]);
   const [view, setView] = React.useState<'grid' | 'list'>('grid');
   
@@ -22,7 +23,7 @@ export default function CashierPage() {
 
   const addToCart = React.useCallback((product: Product, isCombo: boolean) => {
     const cartItemId = product.id + (isCombo ? '-combo' : '-single');
-    const price = isCombo ? product.comboPrice! : product.price;
+    const price = isCombo && product.comboPrice ? product.comboPrice : product.price;
     const name = product.name + (isCombo ? ' (Combo)' : '');
 
     setCart(prevCart => {
@@ -55,6 +56,10 @@ export default function CashierPage() {
 
   const filteredProducts = (category: string) => {
       return category === "Todos" ? products : products.filter(p => p.category === category);
+  }
+
+  if (!activeShift) {
+    return <LoginScreen />;
   }
 
   return (

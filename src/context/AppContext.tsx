@@ -2,8 +2,9 @@
 "use client";
 
 import * as React from "react";
-import type { Product, Ingredient, Order, CartItem, Category, Expense, Customer } from "@/types";
-import { products as initialProducts, ingredients as initialIngredients, categories as initialCategories } from "@/lib/data";
+import type { Product, Ingredient, Order, CartItem, Category, Expense, Customer, Cashier, Shift } from "@/types";
+import { products as initialProducts, ingredients as initialIngredients, categories as initialCategories, cashiers as initialCashiers } from "@/lib/data";
+import { useToast } from "@/hooks/use-toast";
 
 interface AppContextType {
   products: Product[];
@@ -12,6 +13,9 @@ interface AppContextType {
   orders: Order[];
   expenses: Expense[];
   customers: Customer[];
+  cashiers: Cashier[];
+  shifts: Shift[];
+  activeShift: Shift | null;
   addProduct: (product: Omit<Product, 'id' | 'ingredients'>) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
@@ -25,16 +29,26 @@ interface AppContextType {
   updateOrderStatus: (orderId: string, status: Order['status'], prepTime?: number) => void;
   addExpense: (expense: Omit<Expense, 'id' | 'timestamp'>) => void;
   deleteExpense: (expenseId: string) => void;
+  addCashier: (name: string, pin: string) => void;
+  deleteCashier: (cashierId: string) => boolean;
+  login: (cashierId: string, pin: string) => boolean;
+  logout: () => void;
+  endDay: () => void;
 }
 
 const AppContext = React.createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const { toast } = useToast();
   const [products, setProducts] = React.useState<Product[]>(initialProducts);
   const [ingredients, setIngredients] = React.useState<Ingredient[]>(initialIngredients);
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
+  const [cashiers, setCashiers] = React.useState<Cashier[]>(initialCashiers);
+  const [shifts, setShifts] = React.useState<Shift[]>([]);
+  const [activeShift, setActiveShift] = React.useState<Shift | null>(null);
+
 
   const customers = React.useMemo(() => {
     const customerMap = new Map<string, Customer>();
@@ -104,6 +118,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
   
   const addOrder = React.useCallback((cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", customerName?: string, customerPhone?: string) => {
+    if (!activeShift) {
+        toast({ title: "Error", description: "No hay un turno activo para registrar el pedido.", variant: "destructive"});
+        return;
+    }
+
     const newOrder: Order = {
         id: `ord${Date.now()}`,
         items: cart,
@@ -112,15 +131,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         status: 'Pendiente',
         paymentMethod,
         customerName: customerName && customerName.trim() !== '' ? customerName : undefined,
-        customerPhone: customerPhone && customerPhone.trim() !== '' ? customerPhone : undefined
+        customerPhone: customerPhone && customerPhone.trim() !== '' ? customerPhone : undefined,
+        cashierId: activeShift.cashierId,
+        cashierName: activeShift.cashierName,
+        shiftId: activeShift.id,
     };
     setOrders(prev => [newOrder, ...prev]);
-  }, []);
+    
+    setActiveShift(prevShift => {
+        if (!prevShift) return null;
+        const updatedShift = {
+            ...prevShift,
+            orders: [...prevShift.orders, newOrder],
+            totalSales: prevShift.totalSales + total,
+        };
+        return updatedShift;
+    });
+
+  }, [activeShift, toast]);
   
   const updateOrderStatus = React.useCallback((orderId: string, status: Order["status"], prepTime?: number) => {
     setOrders(prevOrders =>
       prevOrders.map(order =>
-        order.id === orderId ? { ...order, status, ...(prepTime && { prepTime }) } : order
+        order.id === orderId ? { ...order, status, ...(prepTime !== undefined && { prepTime }) } : order
       )
     );
   }, []);
@@ -138,33 +171,67 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setExpenses(prev => prev.filter(e => e.id !== expenseId));
   }, []);
 
+  const addCashier = React.useCallback((name: string, pin: string) => {
+    const newCashier: Cashier = { id: `cashier${Date.now()}`, name, pin };
+    setCashiers(prev => [...prev, newCashier]);
+  }, []);
+
+  const deleteCashier = React.useCallback((cashierId: string) => {
+    const isCashierInUse = shifts.some(shift => shift.cashierId === cashierId) || activeShift?.cashierId === cashierId;
+    if (isCashierInUse) {
+      return false;
+    }
+    setCashiers(prev => prev.filter(c => c.id !== cashierId));
+    return true;
+  }, [shifts, activeShift]);
+
+  const login = React.useCallback((cashierId: string, pin: string): boolean => {
+    const cashier = cashiers.find(c => c.id === cashierId);
+    if (cashier && cashier.pin === pin) {
+        const newShift: Shift = {
+            id: `shift${Date.now()}`,
+            cashierId: cashier.id,
+            cashierName: cashier.name,
+            startTime: new Date().toISOString(),
+            orders: [],
+            totalSales: 0,
+        };
+        setActiveShift(newShift);
+        return true;
+    }
+    return false;
+  }, [cashiers]);
+
+  const logout = React.useCallback(() => {
+    if (activeShift) {
+        const endedShift = { ...activeShift, endTime: new Date().toISOString() };
+        setShifts(prev => [...prev, endedShift]);
+        setActiveShift(null);
+    }
+  }, [activeShift]);
+  
+  const endDay = React.useCallback(() => {
+    if (activeShift) {
+        logout();
+    }
+  }, [activeShift, logout]);
+
   const value = React.useMemo(() => ({
-    products,
-    ingredients,
-    categories,
-    orders,
-    expenses,
-    customers,
-    addProduct,
-    updateProduct,
-    deleteProduct,
-    addIngredient,
-    updateIngredient,
-    deleteIngredient,
-    addCategory,
-    updateCategory,
-    deleteCategory,
-    addOrder,
-    updateOrderStatus,
-    addExpense,
-    deleteExpense,
-  }), [
-    products, ingredients, categories, orders, expenses, customers,
+    products, ingredients, categories, orders, expenses, customers, cashiers, shifts, activeShift,
     addProduct, updateProduct, deleteProduct, 
     addIngredient, updateIngredient, deleteIngredient, 
     addCategory, updateCategory, deleteCategory,
     addOrder, updateOrderStatus,
-    addExpense, deleteExpense
+    addExpense, deleteExpense,
+    addCashier, deleteCashier, login, logout, endDay,
+  }), [
+    products, ingredients, categories, orders, expenses, customers, cashiers, shifts, activeShift,
+    addProduct, updateProduct, deleteProduct, 
+    addIngredient, updateIngredient, deleteIngredient, 
+    addCategory, updateCategory, deleteCategory,
+    addOrder, updateOrderStatus,
+    addExpense, deleteExpense,
+    addCashier, deleteCashier, login, logout, endDay,
   ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

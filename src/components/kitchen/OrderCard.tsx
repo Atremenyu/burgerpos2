@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { Order } from "@/types";
 import { cn } from "@/lib/utils";
-import { Clock, Timer } from "lucide-react";
+import { Clock, Timer, User } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -34,7 +34,7 @@ const statusStyles = {
     border: "border-orange-500",
   },
   Preparando: {
-    badge: "bg-yellow-500 text-black animate-pulse",
+    badge: "bg-yellow-500 text-black",
     border: "border-yellow-500",
   },
   Listo: {
@@ -124,13 +124,16 @@ function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
     >
       <CardHeader className="flex-row items-center justify-between p-4">
         <CardTitle className="text-lg">Pedido #{order.id.slice(-4)}</CardTitle>
-        <Badge className={cn(statusStyles[order.status].badge)}>{order.status}</Badge>
+        <Badge className={cn(
+          statusStyles[order.status].badge,
+          order.status === 'Preparando' && 'animate-pulse'
+        )}>{order.status}</Badge>
       </CardHeader>
       <CardContent className="flex-grow p-4 pt-0">
         <div className="space-y-2 text-sm">
           {order.items.map(item => (
-            <div key={item.productId} className="flex justify-between">
-              <span>{item.quantity} x {item.name}</span>
+            <div key={item.id} className="flex justify-between">
+              <span className="truncate pr-2">{item.quantity} x {item.name}</span>
               <span>${(item.price * item.quantity).toFixed(2)}</span>
             </div>
           ))}
@@ -140,12 +143,14 @@ function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
           <span>Total</span>
           <span>${order.total.toFixed(2)}</span>
         </div>
-        {order.customerName && <p className="text-sm text-muted-foreground mt-2">Cliente: {order.customerName}</p>}
-        {order.customerPhone && <p className="text-sm text-muted-foreground mt-1">Teléfono: {order.customerPhone}</p>}
+        <div className="text-sm text-muted-foreground mt-3 pt-3 border-t space-y-1">
+          {order.customerName && <p>Cliente: {order.customerName}</p>}
+          <p className="flex items-center gap-1.5"><User className="h-3 w-3"/>Cajero: {order.cashierName}</p>
+        </div>
         {order.status === 'Preparando' && order.prepTime && (
-          <div className="flex items-center text-sm text-muted-foreground mt-3 pt-3 border-t">
-            <Timer className="h-4 w-4 mr-2 text-primary" />
-            <span className="font-semibold">Tiempo estimado: {order.prepTime} min</span>
+          <div className="flex items-center text-sm text-primary font-semibold mt-3 pt-3 border-t">
+            <Timer className="h-4 w-4 mr-2" />
+            <span>Tiempo estimado: {order.prepTime} min</span>
           </div>
         )}
       </CardContent>

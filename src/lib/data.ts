@@ -1,4 +1,4 @@
-import type { Product, Ingredient, Order, Category } from '@/types';
+import type { Product, Ingredient, Order, Category, Cashier } from '@/types';
 
 export const categories: Category[] = [
   { id: 'cat1', name: 'Hamburguesas' },
@@ -52,4 +52,8 @@ export const products: Product[] = [
     stock: 200,
     ingredients: [{ ingredientId: 'ing7', quantity: 300 }],
   },
+];
+
+export const cashiers: Cashier[] = [
+  { id: 'cashier1', name: 'Admin', pin: '1234' },
 ];
