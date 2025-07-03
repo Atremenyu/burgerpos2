@@ -261,7 +261,7 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
                            <p className="font-semibold">{platformPayment.name}</p>
                        </div>
                    ) : (
-                    <RadioGroup value={paymentMethod} onValueChange={(value: string) => setPaymentMethod(value)} className="grid grid-cols-3 gap-4">
+                    <RadioGroup value={paymentMethod} onValueChange={(value: string) => setPaymentMethod(value)} className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       {userSelectablePaymentMethods.map(pm => {
                         const Icon = paymentMethodIcons[pm.name] || CreditCard;
                         return (
@@ -340,3 +340,5 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
     </>
   );
 }
+
+    

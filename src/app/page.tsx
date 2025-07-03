@@ -14,6 +14,7 @@ import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
 import LoginScreen from "@/components/cashier/LoginScreen";
 import OrderStatusTracker from "@/components/cashier/OrderStatusTracker";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 export default function CashierPage() {
   const { products, categories: allCategories, currentUser } = useAppContext();
@@ -81,15 +82,18 @@ export default function CashierPage() {
           <Card className="h-full shadow-lg dark:bg-gray-800/60">
             <CardContent className="p-4 md:p-6 h-full flex flex-col">
               <Tabs defaultValue="Todos" className="flex-grow flex flex-col">
-                <div className="flex justify-between items-center mb-4">
-                  <TabsList className="bg-gray-200 dark:bg-gray-900">
-                    {categories.map(category => (
-                      <TabsTrigger key={category} value={category} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        {category}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                   <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+                  <ScrollArea className="w-full sm:w-auto pb-2.5">
+                    <TabsList className="bg-gray-200 dark:bg-gray-900 justify-start">
+                        {categories.map(category => (
+                        <TabsTrigger key={category} value={category} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                            {category}
+                        </TabsTrigger>
+                        ))}
+                    </TabsList>
+                    <ScrollBar orientation="horizontal" className="sm:hidden" />
+                  </ScrollArea>
+                   <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
                     <Button variant={view === 'grid' ? 'default' : 'outline'} size="icon" onClick={() => setView('grid')} aria-label="Vista de cuadrícula">
                         <LayoutGrid className="h-4 w-4" />
                     </Button>
@@ -176,3 +180,5 @@ export default function CashierPage() {
     </AppShell>
   );
 }
+
+    

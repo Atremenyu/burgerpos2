@@ -257,9 +257,9 @@ export default function ReportsPage() {
                     />
                 </div>
                  <Card>
-                    <CardHeader className="flex-row items-center justify-between">
+                    <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <CardTitle>Pedidos del {selectedDate ? format(selectedDate, 'PPP', { locale: es }) : ''}</CardTitle>
-                        <Button variant="outline" onClick={() => handleExport(dailyOrders, `pedidos_diarios_${selectedDate ? format(selectedDate, 'yyyy-MM-dd') : 'export'}.csv`)} disabled={!selectedDate || dailyOrders.length === 0}>
+                        <Button variant="outline" onClick={() => handleExport(dailyOrders, `pedidos_diarios_${selectedDate ? format(selectedDate, 'yyyy-MM-dd') : 'export'}.csv`)} disabled={!selectedDate || dailyOrders.length === 0} className="w-full sm:w-auto">
                            <Download className="mr-2 h-4 w-4" /> Exportar CSV
                         </Button>
                     </CardHeader>
@@ -328,12 +328,12 @@ export default function ReportsPage() {
 
           <TabsContent value="shifts" className="mt-6">
             <Card>
-                <CardHeader className="flex-row items-center justify-between">
+                <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <CardTitle className="flex items-center gap-2"><Briefcase className="h-5 w-5" /> Historial de Turnos</CardTitle>
                         <CardDescription>Resumen de todos los turnos de usuario completados.</CardDescription>
                     </div>
-                    <Button variant="outline" onClick={() => handleExport(shifts, 'turnos.csv')}>
+                    <Button variant="outline" onClick={() => handleExport(shifts, 'turnos.csv')} className="w-full sm:w-auto">
                        <Download className="mr-2 h-4 w-4" /> Exportar CSV
                     </Button>
                 </CardHeader>
@@ -374,16 +374,16 @@ export default function ReportsPage() {
 
           <TabsContent value="expenses" className="mt-6">
             <Card>
-              <CardHeader className="flex-row items-center justify-between">
+              <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" /> Registro de Gastos</CardTitle>
                   <CardDescription>Añade y gestiona los gastos de tu negocio.</CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" onClick={() => handleExport(expenses, 'gastos.csv')}>
+                <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                    <Button variant="outline" onClick={() => handleExport(expenses, 'gastos.csv')} className="w-full sm:w-auto">
                        <Download className="mr-2 h-4 w-4" /> Exportar CSV
                     </Button>
-                    <Button onClick={() => setIsExpenseDialogOpen(true)}>
+                    <Button onClick={() => setIsExpenseDialogOpen(true)} className="w-full sm:w-auto">
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Añadir Gasto
                     </Button>
@@ -426,12 +426,12 @@ export default function ReportsPage() {
 
           <TabsContent value="history" className="mt-6">
               <Card>
-                <CardHeader className="flex-row items-center justify-between">
+                <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <CardTitle className="flex items-center gap-2"><History className="h-5 w-5" /> Historial Completo</CardTitle>
                         <CardDescription>Todos los pedidos registrados en el sistema.</CardDescription>
                     </div>
-                    <Button variant="outline" onClick={() => handleExport(orders, 'historial_pedidos.csv')}>
+                    <Button variant="outline" onClick={() => handleExport(orders, 'historial_pedidos.csv')} className="w-full sm:w-auto">
                        <Download className="mr-2 h-4 w-4" /> Exportar CSV
                     </Button>
                 </CardHeader>
@@ -485,12 +485,12 @@ export default function ReportsPage() {
 
           <TabsContent value="customers" className="mt-6">
             <Card>
-              <CardHeader className="flex-row items-center justify-between">
+              <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" /> Base de Datos de Clientes</CardTitle>
                     <CardDescription>Visualiza todos tus clientes y su historial de pedidos.</CardDescription>
                 </div>
-                <Button variant="outline" onClick={() => handleExport(customers, 'clientes.csv')}>
+                <Button variant="outline" onClick={() => handleExport(customers, 'clientes.csv')} className="w-full sm:w-auto">
                     <Download className="mr-2 h-4 w-4" /> Exportar CSV
                 </Button>
               </CardHeader>
@@ -638,3 +638,5 @@ export default function ReportsPage() {
     </AppShell>
   );
 }
+
+    

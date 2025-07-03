@@ -256,12 +256,12 @@ export default function AdminPage() {
 
             <TabsContent value="users" className="mt-6">
                  <Card>
-                    <CardHeader className="flex-row justify-between items-center">
+                    <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <CardTitle className="flex items-center gap-2"><UserCog /> Usuarios del Sistema</CardTitle>
                             <CardDescription>Añade, edita o elimina usuarios.</CardDescription>
                         </div>
-                        <Button onClick={() => { setEditingUser(null); setIsUserDialogOpen(true); }}>
+                        <Button onClick={() => { setEditingUser(null); setIsUserDialogOpen(true); }} className="w-full sm:w-auto">
                            <PlusCircle className="mr-2 h-4 w-4"/> Añadir Usuario
                         </Button>
                     </CardHeader>
@@ -297,12 +297,12 @@ export default function AdminPage() {
 
             <TabsContent value="roles" className="mt-6">
                 <Card>
-                    <CardHeader className="flex-row justify-between items-center">
+                    <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <CardTitle className="flex items-center gap-2"><ShieldCheck /> Roles y Permisos</CardTitle>
                             <CardDescription>Define roles y los permisos asociados a cada uno.</CardDescription>
                         </div>
-                        <Button onClick={() => { setEditingRole(null); setIsRoleDialogOpen(true); }}>
+                        <Button onClick={() => { setEditingRole(null); setIsRoleDialogOpen(true); }} className="w-full sm:w-auto">
                            <PlusCircle className="mr-2 h-4 w-4"/> Añadir Rol
                         </Button>
                     </CardHeader>
@@ -338,9 +338,9 @@ export default function AdminPage() {
 
             <TabsContent value="settings" className="mt-6 space-y-6">
                 <Card>
-                    <CardHeader className="flex-row justify-between items-center">
+                    <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <CardTitle className="flex items-center gap-2"><Settings /> Tipos de Pedido</CardTitle>
-                        <Button onClick={() => openSettingDialog({ type: 'orderType', item: { id: '', name: '' } })}>
+                        <Button onClick={() => openSettingDialog({ type: 'orderType', item: { id: '', name: '' } })} className="w-full sm:w-auto">
                            <PlusCircle className="mr-2 h-4 w-4"/> Añadir
                         </Button>
                     </CardHeader>
@@ -353,9 +353,9 @@ export default function AdminPage() {
                     </Table></CardContent>
                 </Card>
                 <Card>
-                    <CardHeader className="flex-row justify-between items-center">
+                    <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <CardTitle className="flex items-center gap-2"><Settings /> Métodos de Pago</CardTitle>
-                        <Button onClick={() => openSettingDialog({ type: 'paymentMethod', item: { id: '', name: '', isPlatformPayment: false } })}>
+                        <Button onClick={() => openSettingDialog({ type: 'paymentMethod', item: { id: '', name: '', isPlatformPayment: false } })} className="w-full sm:w-auto">
                            <PlusCircle className="mr-2 h-4 w-4"/> Añadir
                         </Button>
                     </CardHeader>
@@ -369,9 +369,9 @@ export default function AdminPage() {
                     </Table></CardContent>
                 </Card>
                 <Card>
-                    <CardHeader className="flex-row justify-between items-center">
+                    <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <CardTitle className="flex items-center gap-2"><Settings /> Plataformas de Delivery</CardTitle>
-                        <Button onClick={() => openSettingDialog({ type: 'deliveryPlatform', item: { id: '', name: '', requiresPlatformPayment: false } })}>
+                        <Button onClick={() => openSettingDialog({ type: 'deliveryPlatform', item: { id: '', name: '', requiresPlatformPayment: false } })} className="w-full sm:w-auto">
                            <PlusCircle className="mr-2 h-4 w-4"/> Añadir
                         </Button>
                     </CardHeader>
@@ -498,3 +498,5 @@ export default function AdminPage() {
     </AppShell>
   );
 }
+
+    
