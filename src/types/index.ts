@@ -37,7 +37,7 @@ export type Order = {
   total: number;
   timestamp: string;
   status: 'Pendiente' | 'Preparando' | 'Listo' | 'Entregado';
-  paymentMethod: 'Efectivo' | 'Tarjeta' | 'Pago de Plataforma';
+  paymentMethod: 'Efectivo' | 'Tarjeta' | 'Pago de Plataforma' | 'Transferencia';
   orderType: 'Comedor' | 'Para Llevar';
   deliveryPlatform?: 'Uber' | 'Didi' | 'Whatsapp' | 'Teléfono';
   customerName?: string;
@@ -46,6 +46,7 @@ export type Order = {
   userId: string;
   userName: string;
   shiftId: string;
+  transactionId?: string;
 };
 
 export type Expense = {

@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus, Minus, ShoppingBag, CheckCircle, CreditCard, DollarSign, Printer, Send, Utensils, Package, Smartphone } from "lucide-react";
+import { Plus, Minus, ShoppingBag, CheckCircle, CreditCard, DollarSign, Printer, Send, Utensils, Package, Smartphone, Landmark } from "lucide-react";
 import type { CartItem, Customer, Order } from "@/types";
 import { cn } from "@/lib/utils";
 import { useAppContext } from "@/context/AppContext";
@@ -34,6 +34,7 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
   const [isSuggestionsOpen, setIsSuggestionsOpen] = React.useState(false);
   const [orderType, setOrderType] = React.useState<Order['orderType']>('Comedor');
   const [deliveryPlatform, setDeliveryPlatform] = React.useState<Order['deliveryPlatform']>();
+  const [transactionId, setTransactionId] = React.useState("");
 
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
@@ -54,9 +55,9 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
   }, []);
   
   const handleConfirmPayment = React.useCallback(() => {
-    addOrder(cart, total, paymentMethod, orderType, deliveryPlatform, customerName, customerPhone);
+    addOrder(cart, total, paymentMethod, orderType, deliveryPlatform, customerName, customerPhone, transactionId);
     setPaymentStep(3);
-  }, [addOrder, cart, total, paymentMethod, orderType, deliveryPlatform, customerName, customerPhone]);
+  }, [addOrder, cart, total, paymentMethod, orderType, deliveryPlatform, customerName, customerPhone, transactionId]);
   
   const handleCloseAndReset = React.useCallback(() => {
     setIsModalOpen(false);
@@ -66,6 +67,7 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
     setPaymentMethod("Tarjeta");
     setOrderType('Comedor');
     setDeliveryPlatform(undefined);
+    setTransactionId("");
   }, [onClearCart]);
   
   const handleNameChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -240,22 +242,37 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
                            <p className="font-semibold">Pago en Plataforma</p>
                        </div>
                    ) : (
-                    <RadioGroup value={paymentMethod} onValueChange={(value: "Efectivo" | "Tarjeta") => setPaymentMethod(value)} className="flex gap-4">
-                      <Label htmlFor="card" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground w-full", paymentMethod === 'Tarjeta' && 'border-primary')}>
+                    <RadioGroup value={paymentMethod} onValueChange={(value: Order["paymentMethod"]) => setPaymentMethod(value)} className="grid grid-cols-3 gap-4">
+                      <Label htmlFor="card" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground", paymentMethod === 'Tarjeta' && 'border-primary')}>
                          <CreditCard className="mb-3 h-6 w-6" /> Tarjeta
                          <RadioGroupItem value="Tarjeta" id="card" className="sr-only"/>
                       </Label>
-                      <Label htmlFor="cash" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground w-full", paymentMethod === 'Efectivo' && 'border-primary')}>
+                      <Label htmlFor="cash" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground", paymentMethod === 'Efectivo' && 'border-primary')}>
                         <DollarSign className="mb-3 h-6 w-6" /> Efectivo
                          <RadioGroupItem value="Efectivo" id="cash" className="sr-only"/>
+                      </Label>
+                      <Label htmlFor="transfer" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground", paymentMethod === 'Transferencia' && 'border-primary')}>
+                        <Landmark className="mb-3 h-6 w-6" /> Transferencia
+                         <RadioGroupItem value="Transferencia" id="transfer" className="sr-only"/>
                       </Label>
                     </RadioGroup>
                    )}
                 </div>
+                 {paymentMethod === 'Transferencia' && (
+                    <div className="space-y-2 pt-2">
+                      <Label htmlFor="transactionId">ID de Transacción</Label>
+                      <Input 
+                        id="transactionId" 
+                        placeholder="Ingresa el SKU o ID" 
+                        value={transactionId} 
+                        onChange={(e) => setTransactionId(e.target.value)} 
+                      />
+                    </div>
+                  )}
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-                <Button onClick={() => setPaymentStep(2)} disabled={orderType === 'Para Llevar' && !deliveryPlatform}>Siguiente (${total.toFixed(2)})</Button>
+                <Button onClick={() => setPaymentStep(2)} disabled={(orderType === 'Para Llevar' && !deliveryPlatform) || (paymentMethod === 'Transferencia' && !transactionId.trim())}>Siguiente (${total.toFixed(2)})</Button>
               </DialogFooter>
             </>
           )}
@@ -274,6 +291,9 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
                     <div className="flex justify-between"><span className="text-muted-foreground">Teléfono:</span> <strong>{customerPhone || 'N/A'}</strong></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Tipo:</span> <strong>{orderType} {orderType === 'Para Llevar' && deliveryPlatform ? `(${deliveryPlatform})` : ''}</strong></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Método:</span> <strong>{paymentMethod}</strong></div>
+                    {paymentMethod === 'Transferencia' && transactionId && (
+                      <div className="flex justify-between"><span className="text-muted-foreground">ID Trans.:</span> <strong className="truncate">{transactionId}</strong></div>
+                    )}
                     <Separator className="my-2"/>
                     <div className="flex justify-between text-lg"><span className="font-semibold">Total:</span> <strong className="text-primary">${total.toFixed(2)}</strong></div>
                   </div>
