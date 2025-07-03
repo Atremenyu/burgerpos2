@@ -23,12 +23,29 @@ export type Category = {
 };
 
 export type CartItem = {
-  id: string; // e.g. 'prod1-single' or 'prod1-combo'
+  id: string; // e.g., 'prod1-single' or 'prod1-combo'
   productId: string;
   name: string;
   price: number;
   quantity: number;
   image: string;
+};
+
+export type OrderType = { 
+  id: string; 
+  name: string 
+};
+
+export type PaymentMethod = { 
+  id: string; 
+  name: string; 
+  isPlatformPayment: boolean 
+};
+
+export type DeliveryPlatform = { 
+  id: string; 
+  name: string; 
+  requiresPlatformPayment: boolean 
 };
 
 export type Order = {
@@ -37,9 +54,9 @@ export type Order = {
   total: number;
   timestamp: string;
   status: 'Pendiente' | 'Preparando' | 'Listo' | 'Entregado';
-  paymentMethod: 'Efectivo' | 'Tarjeta' | 'Pago de Plataforma' | 'Transferencia';
-  orderType: 'Comedor' | 'Para Llevar';
-  deliveryPlatform?: 'Uber' | 'Didi' | 'Whatsapp' | 'Teléfono';
+  paymentMethod: string;
+  orderType: string;
+  deliveryPlatform?: string;
   customerName?: string;
   customerPhone?: string;
   prepTime?: number;

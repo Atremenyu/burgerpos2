@@ -3,8 +3,8 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import type { Product, Ingredient, Order, CartItem, Category, Expense, Customer, User, Shift, Role, CurrentUser } from "@/types";
-import { products as initialProducts, ingredients as initialIngredients, categories as initialCategories, users as initialUsers, roles as initialRoles } from "@/lib/data";
+import type { Product, Ingredient, Order, CartItem, Category, Expense, Customer, User, Shift, Role, CurrentUser, OrderType, PaymentMethod, DeliveryPlatform } from "@/types";
+import { products as initialProducts, ingredients as initialIngredients, categories as initialCategories, users as initialUsers, roles as initialRoles, orderTypes as initialOrderTypes, paymentMethods as initialPaymentMethods, deliveryPlatforms as initialDeliveryPlatforms } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 
 interface AppContextType {
@@ -17,26 +17,49 @@ interface AppContextType {
   users: User[];
   roles: Role[];
   shifts: Shift[];
+  orderTypes: OrderType[];
+  paymentMethods: PaymentMethod[];
+  deliveryPlatforms: DeliveryPlatform[];
   currentUser: CurrentUser | null;
+  
   addProduct: (product: Omit<Product, 'id' | 'ingredients'>) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
+  
   addIngredient: (ingredient: Omit<Ingredient, 'id'>) => void;
   updateIngredient: (ingredient: Ingredient) => void;
   deleteIngredient: (ingredientId: string) => void;
+  
   addCategory: (category: Omit<Category, 'id'>) => void;
   updateCategory: (category: Category) => void;
   deleteCategory: (categoryId: string) => void;
+  
   addOrder: (cart: CartItem[], total: number, paymentMethod: Order['paymentMethod'], orderType: Order['orderType'], deliveryPlatform: Order['deliveryPlatform'], customerName?: string, customerPhone?: string, transactionId?: string) => void;
   updateOrderStatus: (orderId: string, status: Order['status'], prepTime?: number) => void;
+  
   addExpense: (expense: Omit<Expense, 'id' | 'timestamp'>) => void;
   deleteExpense: (expenseId: string) => void;
+  
   addUser: (user: Omit<User, 'id'>) => void;
   updateUser: (user: User) => void;
   deleteUser: (userId: string) => boolean;
+  
   addRole: (role: Omit<Role, 'id'>) => void;
   updateRole: (role: Role) => void;
   deleteRole: (roleId: string) => boolean;
+  
+  addOrderType: (item: Omit<OrderType, 'id'>) => void;
+  updateOrderType: (item: OrderType) => void;
+  deleteOrderType: (id: string) => boolean;
+  
+  addPaymentMethod: (item: Omit<PaymentMethod, 'id'>) => void;
+  updatePaymentMethod: (item: PaymentMethod) => void;
+  deletePaymentMethod: (id: string) => boolean;
+
+  addDeliveryPlatform: (item: Omit<DeliveryPlatform, 'id'>) => void;
+  updateDeliveryPlatform: (item: DeliveryPlatform) => void;
+  deleteDeliveryPlatform: (id: string) => boolean;
+
   login: (userId: string, pin: string) => boolean;
   logout: () => void;
   endDay: () => void;
@@ -55,6 +78,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [users, setUsers] = React.useState<User[]>(initialUsers);
   const [roles, setRoles] = React.useState<Role[]>(initialRoles);
   const [shifts, setShifts] = React.useState<Shift[]>([]);
+  const [orderTypes, setOrderTypes] = React.useState<OrderType[]>(initialOrderTypes);
+  const [paymentMethods, setPaymentMethods] = React.useState<PaymentMethod[]>(initialPaymentMethods);
+  const [deliveryPlatforms, setDeliveryPlatforms] = React.useState<DeliveryPlatform[]>(initialDeliveryPlatforms);
   const [currentUser, setCurrentUser] = React.useState<CurrentUser | null>(null);
   const [activeShift, setActiveShift] = React.useState<Shift | null>(null);
 
@@ -213,7 +239,61 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setRoles(prev => prev.filter(r => r.id !== roleId));
     return true;
   }, [users]);
+  
+  // Settings Management
+  const addOrderType = React.useCallback((data: Omit<OrderType, 'id'>) => {
+    setOrderTypes(prev => [...prev, { id: `ot${Date.now()}`, ...data }]);
+  }, []);
+  const updateOrderType = React.useCallback((updated: OrderType) => {
+    setOrderTypes(prev => prev.map(item => item.id === updated.id ? updated : item));
+  }, []);
+  const deleteOrderType = React.useCallback((id: string) => {
+    const itemToDelete = orderTypes.find(ot => ot.id === id);
+    if (!itemToDelete) return false;
+    const isInUse = orders.some(o => o.orderType === itemToDelete.name);
+    if(isInUse) {
+      toast({ title: "Error", description: "Este tipo de pedido está en uso y no se puede eliminar.", variant: "destructive"});
+      return false;
+    }
+    setOrderTypes(prev => prev.filter(item => item.id !== id));
+    return true;
+  }, [orders, orderTypes, toast]);
 
+  const addPaymentMethod = React.useCallback((data: Omit<PaymentMethod, 'id'>) => {
+    setPaymentMethods(prev => [...prev, { id: `pm${Date.now()}`, ...data }]);
+  }, []);
+  const updatePaymentMethod = React.useCallback((updated: PaymentMethod) => {
+    setPaymentMethods(prev => prev.map(item => item.id === updated.id ? updated : item));
+  }, []);
+  const deletePaymentMethod = React.useCallback((id: string) => {
+    const itemToDelete = paymentMethods.find(pm => pm.id === id);
+    if (!itemToDelete) return false;
+    const isInUse = orders.some(o => o.paymentMethod === itemToDelete.name);
+    if(isInUse) {
+      toast({ title: "Error", description: "Este método de pago está en uso y no se puede eliminar.", variant: "destructive"});
+      return false;
+    }
+    setPaymentMethods(prev => prev.filter(item => item.id !== id));
+    return true;
+  }, [orders, paymentMethods, toast]);
+
+  const addDeliveryPlatform = React.useCallback((data: Omit<DeliveryPlatform, 'id'>) => {
+    setDeliveryPlatforms(prev => [...prev, { id: `dp${Date.now()}`, ...data }]);
+  }, []);
+  const updateDeliveryPlatform = React.useCallback((updated: DeliveryPlatform) => {
+    setDeliveryPlatforms(prev => prev.map(item => item.id === updated.id ? updated : item));
+  }, []);
+  const deleteDeliveryPlatform = React.useCallback((id: string) => {
+    const itemToDelete = deliveryPlatforms.find(dp => dp.id === id);
+    if (!itemToDelete) return false;
+    const isInUse = orders.some(o => o.deliveryPlatform === itemToDelete.name);
+    if(isInUse) {
+      toast({ title: "Error", description: "Esta plataforma de delivery está en uso y no se puede eliminar.", variant: "destructive"});
+      return false;
+    }
+    setDeliveryPlatforms(prev => prev.filter(item => item.id !== id));
+    return true;
+  }, [orders, deliveryPlatforms, toast]);
 
   const login = React.useCallback((userId: string, pin: string): boolean => {
     const user = users.find(u => u.id === userId);
@@ -257,6 +337,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const value = React.useMemo(() => ({
     products, ingredients, categories, orders, expenses, customers, users, roles, shifts, currentUser,
+    orderTypes, paymentMethods, deliveryPlatforms,
     addProduct, updateProduct, deleteProduct, 
     addIngredient, updateIngredient, deleteIngredient, 
     addCategory, updateCategory, deleteCategory,
@@ -264,9 +345,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     addExpense, deleteExpense,
     addUser, updateUser, deleteUser,
     addRole, updateRole, deleteRole,
+    addOrderType, updateOrderType, deleteOrderType,
+    addPaymentMethod, updatePaymentMethod, deletePaymentMethod,
+    addDeliveryPlatform, updateDeliveryPlatform, deleteDeliveryPlatform,
     login, logout, endDay,
   }), [
     products, ingredients, categories, orders, expenses, customers, users, roles, shifts, currentUser,
+    orderTypes, paymentMethods, deliveryPlatforms,
     addProduct, updateProduct, deleteProduct, 
     addIngredient, updateIngredient, deleteIngredient, 
     addCategory, updateCategory, deleteCategory,
@@ -274,6 +359,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     addExpense, deleteExpense,
     addUser, updateUser, deleteUser,
     addRole, updateRole, deleteRole,
+    addOrderType, updateOrderType, deleteOrderType,
+    addPaymentMethod, updatePaymentMethod, deletePaymentMethod,
+    addDeliveryPlatform, updateDeliveryPlatform, deleteDeliveryPlatform,
     login, logout, endDay,
   ]);
 

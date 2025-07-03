@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Plus, Minus, ShoppingBag, CheckCircle, CreditCard, DollarSign, Printer, Send, Utensils, Package, Smartphone, Landmark } from "lucide-react";
-import type { CartItem, Customer, Order } from "@/types";
+import type { CartItem, Customer, Order, PaymentMethod } from "@/types";
 import { cn } from "@/lib/utils";
 import { useAppContext } from "@/context/AppContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,30 +23,45 @@ interface CartProps {
   onClearCart: () => void;
 }
 
+const paymentMethodIcons: Record<string, React.ElementType> = {
+  'Tarjeta': CreditCard,
+  'Efectivo': DollarSign,
+  'Transferencia': Landmark,
+};
+
+const orderTypeIcons: Record<string, React.ElementType> = {
+  'Comedor': Utensils,
+  'Para Llevar': Package,
+};
+
 export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps) {
-  const { addOrder, customers } = useAppContext();
+  const { addOrder, customers, orderTypes, paymentMethods, deliveryPlatforms } = useAppContext();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [paymentStep, setPaymentStep] = React.useState(1);
-  const [paymentMethod, setPaymentMethod] = React.useState<Order["paymentMethod"]>("Tarjeta");
+  const [paymentMethod, setPaymentMethod] = React.useState<string>(paymentMethods.find(p => !p.isPlatformPayment)?.name || '');
   const [customerName, setCustomerName] = React.useState("");
   const [customerPhone, setCustomerPhone] = React.useState("");
   const [suggestions, setSuggestions] = React.useState<Customer[]>([]);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = React.useState(false);
-  const [orderType, setOrderType] = React.useState<Order['orderType']>('Comedor');
-  const [deliveryPlatform, setDeliveryPlatform] = React.useState<Order['deliveryPlatform']>();
+  const [orderType, setOrderType] = React.useState<string>(orderTypes[0]?.name || '');
+  const [deliveryPlatform, setDeliveryPlatform] = React.useState<string | undefined>();
   const [transactionId, setTransactionId] = React.useState("");
 
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   React.useEffect(() => {
-    if (deliveryPlatform === 'Uber' || deliveryPlatform === 'Didi') {
-      setPaymentMethod('Pago de Plataforma');
+    const platform = deliveryPlatforms.find(p => p.name === deliveryPlatform);
+    const platformPaymentMethod = paymentMethods.find(p => p.isPlatformPayment);
+
+    if (platform?.requiresPlatformPayment && platformPaymentMethod) {
+      setPaymentMethod(platformPaymentMethod.name);
     } else {
-      if (paymentMethod === 'Pago de Plataforma') {
-        setPaymentMethod('Tarjeta');
+      const firstNonPlatformMethod = paymentMethods.find(p => !p.isPlatformPayment);
+      if (paymentMethod === platformPaymentMethod?.name) {
+        setPaymentMethod(firstNonPlatformMethod?.name || '');
       }
     }
-  }, [deliveryPlatform, paymentMethod]);
+  }, [deliveryPlatform, deliveryPlatforms, paymentMethods, paymentMethod]);
 
 
   const handleProcessPayment = React.useCallback(() => {
@@ -64,11 +79,11 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
     onClearCart();
     setCustomerName("");
     setCustomerPhone("");
-    setPaymentMethod("Tarjeta");
-    setOrderType('Comedor');
+    setPaymentMethod(paymentMethods.find(p => !p.isPlatformPayment)?.name || '');
+    setOrderType(orderTypes[0]?.name || '');
     setDeliveryPlatform(undefined);
     setTransactionId("");
-  }, [onClearCart]);
+  }, [onClearCart, paymentMethods, orderTypes]);
   
   const handleNameChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -91,6 +106,10 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
     setCustomerPhone(customer.phone);
     setIsSuggestionsOpen(false);
   }, []);
+
+  const selectedPlatform = deliveryPlatforms.find(p => p.name === deliveryPlatform);
+  const platformPayment = paymentMethods.find(p => p.isPlatformPayment);
+  const userSelectablePaymentMethods = paymentMethods.filter(p => !p.isPlatformPayment);
 
   return (
     <>
@@ -203,32 +222,32 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
 
                 <div className="space-y-2">
                     <Label>Tipo de Pedido</Label>
-                    <RadioGroup defaultValue={orderType} onValueChange={(value: Order['orderType']) => {
+                    <RadioGroup value={orderType} onValueChange={(value: string) => {
                         setOrderType(value);
-                        if (value === 'Comedor') setDeliveryPlatform(undefined);
+                        if (value !== 'Para Llevar') setDeliveryPlatform(undefined);
                     }} className="flex gap-4">
-                        <Label htmlFor="dine-in" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground w-full", orderType === 'Comedor' && 'border-primary')}>
-                            <Utensils className="mb-3 h-6 w-6" /> Comedor
-                            <RadioGroupItem value="Comedor" id="dine-in" className="sr-only"/>
-                        </Label>
-                        <Label htmlFor="takeout" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground w-full", orderType === 'Para Llevar' && 'border-primary')}>
-                            <Package className="mb-3 h-6 w-6" /> Para Llevar
-                            <RadioGroupItem value="Para Llevar" id="takeout" className="sr-only"/>
-                        </Label>
+                        {orderTypes.map(ot => {
+                          const Icon = orderTypeIcons[ot.name] || Utensils;
+                          return (
+                            <Label key={ot.id} htmlFor={ot.id} className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground w-full", orderType === ot.name && 'border-primary')}>
+                                <Icon className="mb-3 h-6 w-6" /> {ot.name}
+                                <RadioGroupItem value={ot.name} id={ot.id} className="sr-only"/>
+                            </Label>
+                          )
+                        })}
                     </RadioGroup>
                 </div>
                 {orderType === 'Para Llevar' && (
                     <div className="space-y-2">
                         <Label htmlFor="deliveryPlatform">Plataforma de Entrega</Label>
-                        <Select onValueChange={(value: Order['deliveryPlatform']) => setDeliveryPlatform(value)} value={deliveryPlatform}>
+                        <Select onValueChange={(value: string) => setDeliveryPlatform(value)} value={deliveryPlatform}>
                             <SelectTrigger id="deliveryPlatform">
                                 <SelectValue placeholder="Selecciona una plataforma" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="Uber">Uber</SelectItem>
-                                <SelectItem value="Didi">Didi</SelectItem>
-                                <SelectItem value="Whatsapp">Whatsapp</SelectItem>
-                                <SelectItem value="Teléfono">Teléfono</SelectItem>
+                                {deliveryPlatforms.map(dp => (
+                                  <SelectItem key={dp.id} value={dp.name}>{dp.name}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
@@ -236,25 +255,22 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
 
                 <div className="space-y-2">
                    <Label>Método de Pago</Label>
-                   {(deliveryPlatform === 'Uber' || deliveryPlatform === 'Didi') ? (
+                   {selectedPlatform?.requiresPlatformPayment && platformPayment ? (
                        <div className="flex flex-col items-center justify-center rounded-md border-2 border-primary bg-muted p-4 h-[106px]">
                            <Smartphone className="mb-3 h-6 w-6" />
-                           <p className="font-semibold">Pago en Plataforma</p>
+                           <p className="font-semibold">{platformPayment.name}</p>
                        </div>
                    ) : (
-                    <RadioGroup value={paymentMethod} onValueChange={(value: Order["paymentMethod"]) => setPaymentMethod(value)} className="grid grid-cols-3 gap-4">
-                      <Label htmlFor="card" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground", paymentMethod === 'Tarjeta' && 'border-primary')}>
-                         <CreditCard className="mb-3 h-6 w-6" /> Tarjeta
-                         <RadioGroupItem value="Tarjeta" id="card" className="sr-only"/>
-                      </Label>
-                      <Label htmlFor="cash" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground", paymentMethod === 'Efectivo' && 'border-primary')}>
-                        <DollarSign className="mb-3 h-6 w-6" /> Efectivo
-                         <RadioGroupItem value="Efectivo" id="cash" className="sr-only"/>
-                      </Label>
-                      <Label htmlFor="transfer" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground", paymentMethod === 'Transferencia' && 'border-primary')}>
-                        <Landmark className="mb-3 h-6 w-6" /> Transferencia
-                         <RadioGroupItem value="Transferencia" id="transfer" className="sr-only"/>
-                      </Label>
+                    <RadioGroup value={paymentMethod} onValueChange={(value: string) => setPaymentMethod(value)} className="grid grid-cols-3 gap-4">
+                      {userSelectablePaymentMethods.map(pm => {
+                        const Icon = paymentMethodIcons[pm.name] || CreditCard;
+                        return (
+                          <Label key={pm.id} htmlFor={pm.id} className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground", paymentMethod === pm.name && 'border-primary')}>
+                             <Icon className="mb-3 h-6 w-6" /> {pm.name}
+                             <RadioGroupItem value={pm.name} id={pm.id} className="sr-only"/>
+                          </Label>
+                        )
+                      })}
                     </RadioGroup>
                    )}
                 </div>

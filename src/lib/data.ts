@@ -1,4 +1,4 @@
-import type { Product, Ingredient, Category, User, Role } from '@/types';
+import type { Product, Ingredient, Category, User, Role, OrderType, PaymentMethod, DeliveryPlatform } from '@/types';
 
 export const categories: Category[] = [
   { id: 'cat1', name: 'Hamburguesas' },
@@ -62,4 +62,23 @@ export const roles: Role[] = [
 
 export const users: User[] = [
   { id: 'user1', name: 'Admin', pin: '1234', roleId: 'role1' },
+];
+
+export const orderTypes: OrderType[] = [
+    { id: 'ot1', name: 'Comedor' },
+    { id: 'ot2', name: 'Para Llevar' },
+];
+
+export const paymentMethods: PaymentMethod[] = [
+    { id: 'pm1', name: 'Tarjeta', isPlatformPayment: false },
+    { id: 'pm2', name: 'Efectivo', isPlatformPayment: false },
+    { id: 'pm3', name: 'Transferencia', isPlatformPayment: false },
+    { id: 'pm4', name: 'Pago de Plataforma', isPlatformPayment: true },
+];
+
+export const deliveryPlatforms: DeliveryPlatform[] = [
+    { id: 'dp1', name: 'Uber', requiresPlatformPayment: true },
+    { id: 'dp2', name: 'Didi', requiresPlatformPayment: true },
+    { id: 'dp3', name: 'Whatsapp', requiresPlatformPayment: false },
+    { id: 'dp4', name: 'Teléfono', requiresPlatformPayment: false },
 ];
