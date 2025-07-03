@@ -15,7 +15,7 @@ import { useAppContext } from "@/context/AppContext";
 import LoginScreen from "@/components/cashier/LoginScreen";
 
 export default function CashierPage() {
-  const { products, categories: allCategories, activeShift } = useAppContext();
+  const { products, categories: allCategories, currentUser } = useAppContext();
   const [cart, setCart] = React.useState<CartItem[]>([]);
   const [view, setView] = React.useState<'grid' | 'list'>('grid');
   
@@ -58,8 +58,19 @@ export default function CashierPage() {
       return category === "Todos" ? products : products.filter(p => p.category === category);
   }
 
-  if (!activeShift) {
+  if (!currentUser) {
     return <LoginScreen />;
+  }
+  
+  if (!currentUser.role.permissions.includes('caja')) {
+    return (
+        <AppShell>
+            <div className="flex flex-col items-center justify-center h-full text-center">
+                <h1 className="text-2xl font-bold">Acceso Denegado</h1>
+                <p className="text-muted-foreground">No tienes permiso para acceder a esta sección.</p>
+            </div>
+        </AppShell>
+    );
   }
 
   return (

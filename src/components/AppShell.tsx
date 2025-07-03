@@ -22,18 +22,23 @@ import { useTheme } from "next-themes";
 import * as React from 'react';
 import { useAppContext } from "@/context/AppContext";
 
-const navLinks = [
-  { href: "/", label: "Caja", icon: ShoppingCart },
-  { href: "/kitchen", label: "Cocina", icon: ChefHat },
-  { href: "/inventory", label: "Inventario", icon: Boxes },
-  { href: "/reports", label: "Informes", icon: BarChart2 },
-  { href: "/admin", label: "Admin", icon: Lock },
+const allNavLinks = [
+  { href: "/", label: "Caja", icon: ShoppingCart, permission: 'caja' },
+  { href: "/kitchen", label: "Cocina", icon: ChefHat, permission: 'kitchen' },
+  { href: "/inventory", label: "Inventario", icon: Boxes, permission: 'inventory' },
+  { href: "/reports", label: "Informes", icon: BarChart2, permission: 'reports' },
+  { href: "/admin", label: "Admin", icon: Lock, permission: 'admin' },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-  const { activeShift, logout } = useAppContext();
+  const { currentUser, logout } = useAppContext();
+
+  const navLinks = React.useMemo(() => {
+    if (!currentUser) return [];
+    return allNavLinks.filter(link => currentUser.role.permissions.includes(link.permission));
+  }, [currentUser]);
 
   const NavContent = () => (
     <nav className="flex flex-col md:flex-row items-center gap-4 text-sm font-medium">
@@ -64,12 +69,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <span className="font-bold text-lg">OrderFlow</span>
           </Link>
           <div className="hidden md:flex items-center gap-4">
-             <NavContent />
+             {currentUser && <NavContent />}
              <div className="flex items-center gap-4">
-              {activeShift && (
+              {currentUser && (
                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                   <UserCircle className="h-5 w-5 text-primary"/>
-                  <span>{activeShift.cashierName}</span>
+                  <span>{currentUser.name} ({currentUser.role.name})</span>
                   <Button variant="ghost" size="icon" onClick={logout} className="h-8 w-8">
                     <LogOut className="h-4 w-4 text-destructive" />
                   </Button>
@@ -87,40 +92,42 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="md:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-6 w-6" />
-                  <span className="sr-only">Toggle navigation</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right">
-                <div className="flex flex-col gap-4 p-4">
-                  <NavContent />
-                   {activeShift && (
-                    <div className="flex items-center justify-between pt-4 border-t">
-                      <div className="flex items-center gap-2 font-medium">
-                        <UserCircle className="h-5 w-5 text-primary"/>
-                        <span>{activeShift.cashierName}</span>
-                      </div>
-                      <Button variant="ghost" onClick={logout}>
-                        Cerrar Turno <LogOut className="ml-2 h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  )}
-                   <div className="pt-4 border-t">
-                     <Button
-                      variant="ghost"
-                      className="w-full justify-start"
-                      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                    >
-                      {theme === 'dark' ? <Sun className="mr-2 h-5 w-5"/> : <Moon className="mr-2 h-5 w-5" />}
-                      Cambiar Tema
+             {currentUser && (
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Menu className="h-6 w-6" />
+                      <span className="sr-only">Toggle navigation</span>
                     </Button>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+                  </SheetTrigger>
+                  <SheetContent side="right">
+                    <div className="flex flex-col gap-4 p-4">
+                      <NavContent />
+                       {currentUser && (
+                        <div className="flex items-center justify-between pt-4 border-t">
+                          <div className="flex items-center gap-2 font-medium">
+                            <UserCircle className="h-5 w-5 text-primary"/>
+                            <span>{currentUser.name}</span>
+                          </div>
+                          <Button variant="ghost" onClick={logout}>
+                            Cerrar Sesión <LogOut className="ml-2 h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      )}
+                       <div className="pt-4 border-t">
+                         <Button
+                          variant="ghost"
+                          className="w-full justify-start"
+                          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                        >
+                          {theme === 'dark' ? <Sun className="mr-2 h-5 w-5"/> : <Moon className="mr-2 h-5 w-5" />}
+                          Cambiar Tema
+                        </Button>
+                      </div>
+                    </div>
+                  </SheetContent>
+                </Sheet>
+             )}
           </div>
         </div>
       </header>

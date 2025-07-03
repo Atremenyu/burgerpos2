@@ -27,12 +27,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LogIn } from "lucide-react";
 
 const loginSchema = z.object({
-  cashierId: z.string().min(1, "Debes seleccionar un cajero."),
+  userId: z.string().min(1, "Debes seleccionar un usuario."),
   pin: z.string().length(4, "El PIN debe tener 4 dígitos."),
 });
 
 export default function LoginScreen() {
-  const { cashiers, login } = useAppContext();
+  const { users, login } = useAppContext();
   const { toast } = useToast();
   const {
     control,
@@ -40,15 +40,15 @@ export default function LoginScreen() {
     formState: { errors },
   } = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { cashierId: "", pin: "" },
+    defaultValues: { userId: "", pin: "" },
   });
 
   const handleLogin = (data: z.infer<typeof loginSchema>) => {
-    const success = login(data.cashierId, data.pin);
+    const success = login(data.userId, data.pin);
     if (!success) {
       toast({
         title: "Error de inicio de sesión",
-        description: "El PIN es incorrecto. Por favor, inténtalo de nuevo.",
+        description: "El PIN o el usuario es incorrecto. Por favor, inténtalo de nuevo.",
         variant: "destructive",
       });
     }
@@ -58,7 +58,7 @@ export default function LoginScreen() {
     <div className="flex items-center justify-center min-h-screen bg-muted/40">
       <Card className="w-full max-w-sm shadow-2xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Iniciar Turno</CardTitle>
+          <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
           <CardDescription>
             Selecciona tu usuario e ingresa tu PIN para comenzar.
           </CardDescription>
@@ -67,25 +67,25 @@ export default function LoginScreen() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Controller
-                name="cashierId"
+                name="userId"
                 control={control}
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecciona un cajero" />
+                      <SelectValue placeholder="Selecciona un usuario" />
                     </SelectTrigger>
                     <SelectContent>
-                      {cashiers.map((cashier) => (
-                        <SelectItem key={cashier.id} value={cashier.id}>
-                          {cashier.name}
+                      {users.map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 )}
               />
-              {errors.cashierId && (
-                <p className="text-sm text-destructive">{errors.cashierId.message}</p>
+              {errors.userId && (
+                <p className="text-sm text-destructive">{errors.userId.message}</p>
               )}
             </div>
             <div className="space-y-2">

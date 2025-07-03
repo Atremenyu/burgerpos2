@@ -2,8 +2,8 @@
 "use client";
 
 import * as React from "react";
-import type { Product, Ingredient, Order, CartItem, Category, Expense, Customer, Cashier, Shift } from "@/types";
-import { products as initialProducts, ingredients as initialIngredients, categories as initialCategories, cashiers as initialCashiers } from "@/lib/data";
+import type { Product, Ingredient, Order, CartItem, Category, Expense, Customer, User, Shift, Role, CurrentUser } from "@/types";
+import { products as initialProducts, ingredients as initialIngredients, categories as initialCategories, users as initialUsers, roles as initialRoles } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 
 interface AppContextType {
@@ -13,9 +13,10 @@ interface AppContextType {
   orders: Order[];
   expenses: Expense[];
   customers: Customer[];
-  cashiers: Cashier[];
+  users: User[];
+  roles: Role[];
   shifts: Shift[];
-  activeShift: Shift | null;
+  currentUser: CurrentUser | null;
   addProduct: (product: Omit<Product, 'id' | 'ingredients'>) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
@@ -29,9 +30,13 @@ interface AppContextType {
   updateOrderStatus: (orderId: string, status: Order['status'], prepTime?: number) => void;
   addExpense: (expense: Omit<Expense, 'id' | 'timestamp'>) => void;
   deleteExpense: (expenseId: string) => void;
-  addCashier: (name: string, pin: string) => void;
-  deleteCashier: (cashierId: string) => boolean;
-  login: (cashierId: string, pin: string) => boolean;
+  addUser: (user: Omit<User, 'id'>) => void;
+  updateUser: (user: User) => void;
+  deleteUser: (userId: string) => boolean;
+  addRole: (role: Omit<Role, 'id'>) => void;
+  updateRole: (role: Role) => void;
+  deleteRole: (roleId: string) => boolean;
+  login: (userId: string, pin: string) => boolean;
   logout: () => void;
   endDay: () => void;
 }
@@ -45,14 +50,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [categories, setCategories] = React.useState<Category[]>(initialCategories);
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
-  const [cashiers, setCashiers] = React.useState<Cashier[]>(initialCashiers);
+  const [users, setUsers] = React.useState<User[]>(initialUsers);
+  const [roles, setRoles] = React.useState<Role[]>(initialRoles);
   const [shifts, setShifts] = React.useState<Shift[]>([]);
+  const [currentUser, setCurrentUser] = React.useState<CurrentUser | null>(null);
   const [activeShift, setActiveShift] = React.useState<Shift | null>(null);
 
 
   const customers = React.useMemo(() => {
     const customerMap = new Map<string, Customer>();
-    // Iterate backwards to get the most recent phone number for a customer if it has changed
     for (let i = orders.length - 1; i >= 0; i--) {
         const order = orders[i];
         if (order.customerName) {
@@ -118,8 +124,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
   
   const addOrder = React.useCallback((cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", customerName?: string, customerPhone?: string) => {
-    if (!activeShift) {
-        toast({ title: "Error", description: "No hay un turno activo para registrar el pedido.", variant: "destructive"});
+    if (!currentUser || !activeShift) {
+        toast({ title: "Error", description: "No hay un turno de caja activo para registrar el pedido.", variant: "destructive"});
         return;
     }
 
@@ -132,8 +138,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         paymentMethod,
         customerName: customerName && customerName.trim() !== '' ? customerName : undefined,
         customerPhone: customerPhone && customerPhone.trim() !== '' ? customerPhone : undefined,
-        cashierId: activeShift.cashierId,
-        cashierName: activeShift.cashierName,
+        userId: currentUser.id,
+        userName: currentUser.name,
         shiftId: activeShift.id,
     };
     setOrders(prev => [newOrder, ...prev]);
@@ -148,7 +154,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return updatedShift;
     });
 
-  }, [activeShift, toast]);
+  }, [currentUser, activeShift, toast]);
   
   const updateOrderStatus = React.useCallback((orderId: string, status: Order["status"], prepTime?: number) => {
     setOrders(prevOrders =>
@@ -171,36 +177,62 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setExpenses(prev => prev.filter(e => e.id !== expenseId));
   }, []);
 
-  const addCashier = React.useCallback((name: string, pin: string) => {
-    const newCashier: Cashier = { id: `cashier${Date.now()}`, name, pin };
-    setCashiers(prev => [...prev, newCashier]);
+  const addUser = React.useCallback((userData: Omit<User, 'id'>) => {
+    const newUser: User = { id: `user${Date.now()}`, ...userData };
+    setUsers(prev => [...prev, newUser]);
   }, []);
 
-  const deleteCashier = React.useCallback((cashierId: string) => {
-    const isCashierInUse = shifts.some(shift => shift.cashierId === cashierId) || activeShift?.cashierId === cashierId;
-    if (isCashierInUse) {
-      return false;
-    }
-    setCashiers(prev => prev.filter(c => c.id !== cashierId));
-    return true;
-  }, [shifts, activeShift]);
+  const updateUser = React.useCallback((updatedUser: User) => {
+    setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+  }, []);
 
-  const login = React.useCallback((cashierId: string, pin: string): boolean => {
-    const cashier = cashiers.find(c => c.id === cashierId);
-    if (cashier && cashier.pin === pin) {
-        const newShift: Shift = {
-            id: `shift${Date.now()}`,
-            cashierId: cashier.id,
-            cashierName: cashier.name,
-            startTime: new Date().toISOString(),
-            orders: [],
-            totalSales: 0,
-        };
-        setActiveShift(newShift);
+  const deleteUser = React.useCallback((userId: string) => {
+    const isUserInUse = shifts.some(shift => shift.userId === userId);
+    if (isUserInUse) return false;
+    setUsers(prev => prev.filter(u => u.id !== userId));
+    return true;
+  }, [shifts]);
+  
+  const addRole = React.useCallback((roleData: Omit<Role, 'id'>) => {
+    const newRole: Role = { id: `role${Date.now()}`, ...roleData };
+    setRoles(prev => [...prev, newRole]);
+  }, []);
+  
+  const updateRole = React.useCallback((updatedRole: Role) => {
+    setRoles(prev => prev.map(r => r.id === updatedRole.id ? updatedRole : r));
+  }, []);
+
+  const deleteRole = React.useCallback((roleId: string) => {
+    const isRoleInUse = users.some(u => u.roleId === roleId);
+    if (isRoleInUse) return false;
+    setRoles(prev => prev.filter(r => r.id !== roleId));
+    return true;
+  }, [users]);
+
+
+  const login = React.useCallback((userId: string, pin: string): boolean => {
+    const user = users.find(u => u.id === userId);
+    const role = roles.find(r => r.id === user?.roleId);
+
+    if (user && user.pin === pin && role) {
+        const userWithRole: CurrentUser = { ...user, role };
+        setCurrentUser(userWithRole);
+        
+        if (role.permissions.includes('caja')) {
+            const newShift: Shift = {
+                id: `shift${Date.now()}`,
+                userId: user.id,
+                userName: user.name,
+                startTime: new Date().toISOString(),
+                orders: [],
+                totalSales: 0,
+            };
+            setActiveShift(newShift);
+        }
         return true;
     }
     return false;
-  }, [cashiers]);
+  }, [users, roles]);
 
   const logout = React.useCallback(() => {
     if (activeShift) {
@@ -208,30 +240,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setShifts(prev => [...prev, endedShift]);
         setActiveShift(null);
     }
+    setCurrentUser(null);
   }, [activeShift]);
   
   const endDay = React.useCallback(() => {
-    if (activeShift) {
+    if (currentUser) {
         logout();
     }
-  }, [activeShift, logout]);
+  }, [currentUser, logout]);
 
   const value = React.useMemo(() => ({
-    products, ingredients, categories, orders, expenses, customers, cashiers, shifts, activeShift,
+    products, ingredients, categories, orders, expenses, customers, users, roles, shifts, currentUser,
     addProduct, updateProduct, deleteProduct, 
     addIngredient, updateIngredient, deleteIngredient, 
     addCategory, updateCategory, deleteCategory,
     addOrder, updateOrderStatus,
     addExpense, deleteExpense,
-    addCashier, deleteCashier, login, logout, endDay,
+    addUser, updateUser, deleteUser,
+    addRole, updateRole, deleteRole,
+    login, logout, endDay,
   }), [
-    products, ingredients, categories, orders, expenses, customers, cashiers, shifts, activeShift,
+    products, ingredients, categories, orders, expenses, customers, users, roles, shifts, currentUser,
     addProduct, updateProduct, deleteProduct, 
     addIngredient, updateIngredient, deleteIngredient, 
     addCategory, updateCategory, deleteCategory,
     addOrder, updateOrderStatus,
     addExpense, deleteExpense,
-    addCashier, deleteCashier, login, logout, endDay,
+    addUser, updateUser, deleteUser,
+    addRole, updateRole, deleteRole,
+    login, logout, endDay,
   ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

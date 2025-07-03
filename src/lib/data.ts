@@ -1,4 +1,4 @@
-import type { Product, Ingredient, Order, Category, Cashier } from '@/types';
+import type { Product, Ingredient, Category, User, Role } from '@/types';
 
 export const categories: Category[] = [
   { id: 'cat1', name: 'Hamburguesas' },
@@ -54,6 +54,12 @@ export const products: Product[] = [
   },
 ];
 
-export const cashiers: Cashier[] = [
-  { id: 'cashier1', name: 'Admin', pin: '1234' },
+export const roles: Role[] = [
+    { id: 'role1', name: 'Administrador', permissions: ['caja', 'kitchen', 'inventory', 'reports', 'admin'] },
+    { id: 'role2', name: 'Cajero', permissions: ['caja'] },
+    { id: 'role3', name: 'Cocinero', permissions: ['kitchen'] },
+];
+
+export const users: User[] = [
+  { id: 'user1', name: 'Admin', pin: '1234', roleId: 'role1' },
 ];

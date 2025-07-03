@@ -145,7 +145,7 @@ function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
         </div>
         <div className="text-sm text-muted-foreground mt-3 pt-3 border-t space-y-1">
           {order.customerName && <p>Cliente: {order.customerName}</p>}
-          <p className="flex items-center gap-1.5"><User className="h-3 w-3"/>Cajero: {order.cashierName}</p>
+          <p className="flex items-center gap-1.5"><User className="h-3 w-3"/>Usuario: {order.userName}</p>
         </div>
         {order.status === 'Preparando' && order.prepTime && (
           <div className="flex items-center text-sm text-primary font-semibold mt-3 pt-3 border-t">

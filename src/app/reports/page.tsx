@@ -76,7 +76,7 @@ type CustomerData = {
 };
 
 export default function ReportsPage() {
-  const { orders, products, expenses, addExpense, deleteExpense, shifts } = useAppContext();
+  const { orders, products, expenses, addExpense, deleteExpense, shifts, currentUser } = useAppContext();
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
   const [selectedCustomer, setSelectedCustomer] = React.useState<CustomerData | null>(null);
 
@@ -159,6 +159,17 @@ export default function ReportsPage() {
     setIsDeleteDialogOpen(true);
   }, []);
   
+  if (!currentUser?.role.permissions.includes('reports')) {
+    return (
+        <AppShell>
+            <div className="flex flex-col items-center justify-center h-full text-center">
+                <h1 className="text-2xl font-bold">Acceso Denegado</h1>
+                <p className="text-muted-foreground">No tienes permiso para acceder a esta sección.</p>
+            </div>
+        </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <div className="flex flex-col gap-8">
@@ -281,14 +292,14 @@ export default function ReportsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><Briefcase className="h-5 w-5" /> Historial de Turnos</CardTitle>
-                    <CardDescription>Resumen de todos los turnos de cajero completados.</CardDescription>
+                    <CardDescription>Resumen de todos los turnos de usuario completados.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <ScrollArea className="h-[600px]">
                        <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Cajero</TableHead>
+                                    <TableHead>Usuario</TableHead>
                                     <TableHead>Fecha</TableHead>
                                     <TableHead>Inicio</TableHead>
                                     <TableHead>Fin</TableHead>
@@ -299,7 +310,7 @@ export default function ReportsPage() {
                             <TableBody>
                                 {shifts.length > 0 ? [...shifts].sort((a,b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()).map(shift => (
                                      <TableRow key={shift.id}>
-                                        <TableCell className="font-medium">{shift.cashierName}</TableCell>
+                                        <TableCell className="font-medium">{shift.userName}</TableCell>
                                         <TableCell>{format(new Date(shift.startTime), 'P', { locale: es })}</TableCell>
                                         <TableCell>{format(new Date(shift.startTime), 'p', { locale: es })}</TableCell>
                                         <TableCell>{shift.endTime ? format(new Date(shift.endTime), 'p', { locale: es }) : 'En curso'}</TableCell>
@@ -378,7 +389,7 @@ export default function ReportsPage() {
                                 <TableRow>
                                     <TableHead>Pedido</TableHead>
                                     <TableHead>Fecha</TableHead>
-                                    <TableHead>Cajero</TableHead>
+                                    <TableHead>Usuario</TableHead>
                                     <TableHead>Cliente</TableHead>
                                     <TableHead>Total</TableHead>
                                     <TableHead>Estado</TableHead>
@@ -389,7 +400,7 @@ export default function ReportsPage() {
                                      <TableRow key={order.id}>
                                         <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
                                         <TableCell>{format(new Date(order.timestamp), 'PPp', { locale: es })}</TableCell>
-                                        <TableCell>{order.cashierName}</TableCell>
+                                        <TableCell>{order.userName}</TableCell>
                                         <TableCell>{order.customerName || 'N/A'}</TableCell>
                                         <TableCell>${order.total.toFixed(2)}</TableCell>
                                         <TableCell><Badge variant="outline">{order.status}</Badge></TableCell>

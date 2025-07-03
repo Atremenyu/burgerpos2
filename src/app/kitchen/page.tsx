@@ -10,12 +10,23 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
 
 export default function KitchenPage() {
-  const { orders, updateOrderStatus } = useAppContext();
+  const { orders, updateOrderStatus, currentUser } = useAppContext();
 
   const pendingOrders = orders.filter(o => o.status === 'Pendiente');
   const preparingOrders = orders.filter(o => o.status === 'Preparando');
   const readyOrders = orders.filter(o => o.status === 'Listo');
   const deliveredOrders = orders.filter(o => o.status === 'Entregado');
+  
+  if (!currentUser?.role.permissions.includes('kitchen')) {
+    return (
+        <AppShell>
+            <div className="flex flex-col items-center justify-center h-full text-center">
+                <h1 className="text-2xl font-bold">Acceso Denegado</h1>
+                <p className="text-muted-foreground">No tienes permiso para acceder a esta sección.</p>
+            </div>
+        </AppShell>
+    );
+  }
 
   return (
     <AppShell>

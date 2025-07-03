@@ -87,6 +87,7 @@ export default function InventoryPage() {
     addCategory,
     updateCategory,
     deleteCategory,
+    currentUser,
   } = useAppContext();
   const { toast } = useToast();
 
@@ -261,6 +262,17 @@ export default function InventoryPage() {
     document.body.removeChild(link);
   }, []);
   
+  if (!currentUser?.role.permissions.includes('inventory')) {
+    return (
+        <AppShell>
+            <div className="flex flex-col items-center justify-center h-full text-center">
+                <h1 className="text-2xl font-bold">Acceso Denegado</h1>
+                <p className="text-muted-foreground">No tienes permiso para acceder a esta sección.</p>
+            </div>
+        </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <div className="flex items-center justify-between mb-6">

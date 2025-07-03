@@ -41,8 +41,8 @@ export type Order = {
   customerName?: string;
   customerPhone?: string;
   prepTime?: number;
-  cashierId: string;
-  cashierName: string;
+  userId: string;
+  userName: string;
   shiftId: string;
 };
 
@@ -58,18 +58,29 @@ export type Customer = {
   phone: string;
 };
 
-export type Cashier = {
+export type User = {
   id: string;
   name: string;
   pin: string;
+  roleId: string;
+};
+
+export type Role = {
+  id: string;
+  name: string;
+  permissions: string[];
 };
 
 export type Shift = {
   id: string;
-  cashierId: string;
-  cashierName: string;
+  userId: string;
+  userName: string;
   startTime: string;
   endTime?: string;
   orders: Order[];
   totalSales: number;
+};
+
+export type CurrentUser = User & {
+    role: Role;
 };
