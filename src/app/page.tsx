@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -12,7 +11,6 @@ import type { Product, CartItem } from "@/types";
 import { LayoutGrid, List, PlusCircle } from "lucide-react";
 import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function CashierPage() {
   const { products } = useAppContext();
@@ -107,28 +105,25 @@ export default function CashierPage() {
                                 <p className="font-semibold">{product.name}</p>
                                 <p className="text-sm text-muted-foreground">${product.price.toFixed(2)}</p>
                             </div>
-                            <div className="shrink-0">
+                            <div className="shrink-0 flex items-center gap-2">
                                 {product.comboPrice ? (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
+                                    <>
                                         <Button
                                             size="sm"
+                                            variant="outline"
+                                            onClick={() => addToCart(product, false)}
                                             disabled={product.stock === 0}
                                         >
-                                            <PlusCircle className="mr-2 h-4 w-4" /> Añadir
+                                            Sencillo
                                         </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-2">
-                                        <div className="flex flex-col gap-2">
-                                            <Button variant="ghost" className="justify-start" onClick={() => addToCart(product, false)}>
-                                            Sencillo (${product.price.toFixed(2)})
-                                            </Button>
-                                            <Button variant="ghost" className="justify-start" onClick={() => addToCart(product, true)}>
-                                            Combo (${product.comboPrice.toFixed(2)})
-                                            </Button>
-                                        </div>
-                                        </PopoverContent>
-                                    </Popover>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => addToCart(product, true)}
+                                            disabled={product.stock === 0}
+                                        >
+                                            Combo
+                                        </Button>
+                                    </>
                                     ) : (
                                     <Button
                                         size="sm"
