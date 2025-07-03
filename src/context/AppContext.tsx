@@ -80,24 +80,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     );
   };
   
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      const randomProduct = initialProducts[Math.floor(Math.random() * initialProducts.length)];
-      const newOrder: Order = {
-        id: `ord${Date.now()}`,
-        items: [{ productId: randomProduct.id, name: randomProduct.name, price: randomProduct.price, quantity: 1, image: randomProduct.image }],
-        total: randomProduct.price,
-        timestamp: new Date().toISOString(),
-        status: 'Pendiente',
-        paymentMethod: 'Tarjeta',
-        customerName: 'Cliente en Línea'
-      };
-      setOrders(prev => [newOrder, ...prev]);
-    }, 45000); 
-
-    return () => clearInterval(interval);
-  }, []);
-
   const value = {
     products,
     ingredients,
