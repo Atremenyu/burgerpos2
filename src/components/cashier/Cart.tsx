@@ -101,8 +101,8 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
             Pedido Actual
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex-grow p-0 relative">
-          <ScrollArea className="absolute inset-0">
+        <CardContent className="flex-1 p-0 min-h-0">
+          <ScrollArea className="h-full">
             {cart.length === 0 ? (
               <div className="flex items-center justify-center h-full text-center text-muted-foreground p-8">
                 Tu carrito está vacío.

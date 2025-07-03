@@ -66,7 +66,7 @@ export default function OrderStatusTracker() {
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <ScrollArea className="h-64">
+                <ScrollArea className="h-72">
                     {activeOrders.length === 0 ? (
                         <div className="flex items-center justify-center h-full text-center text-muted-foreground">
                             No hay pedidos activos.
