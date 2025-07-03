@@ -47,7 +47,7 @@ const statusStyles = {
   },
 };
 
-export default function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
+function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
   const [isAccepting, setIsAccepting] = React.useState(false);
   const [prepTime, setPrepTime] = React.useState('');
   const timeAgo = formatDistanceToNow(new Date(order.timestamp), { addSuffix: true, locale: es });
@@ -159,3 +159,5 @@ export default function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
     </Card>
   );
 }
+
+export default React.memo(OrderCard);

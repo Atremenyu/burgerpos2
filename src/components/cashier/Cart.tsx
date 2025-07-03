@@ -32,23 +32,23 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
 
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
-  const handleProcessPayment = () => {
+  const handleProcessPayment = React.useCallback(() => {
     setPaymentStep(1);
     setIsModalOpen(true);
-  };
+  }, []);
   
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = React.useCallback(() => {
     addOrder(cart, total, paymentMethod, customerName, customerPhone);
     setPaymentStep(3);
-  };
+  }, [addOrder, cart, total, paymentMethod, customerName, customerPhone]);
   
-  const handleCloseAndReset = () => {
+  const handleCloseAndReset = React.useCallback(() => {
     setIsModalOpen(false);
     onClearCart();
     setCustomerName("");
     setCustomerPhone("");
     setPaymentMethod("Tarjeta");
-  };
+  }, [onClearCart]);
 
   return (
     <>

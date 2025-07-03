@@ -159,7 +159,7 @@ export default function InventoryPage() {
     }
   }, [isCategoryDialogOpen, editingCategory, categoryForm]);
 
-  const handleProductSubmit = (data: z.infer<typeof productSchema>) => {
+  const handleProductSubmit = React.useCallback((data: z.infer<typeof productSchema>) => {
     const productData = {
       ...data,
       comboPrice: data.comboPrice ? Number(data.comboPrice) : undefined,
@@ -170,18 +170,18 @@ export default function InventoryPage() {
       addProduct({ ...productData, image: data.image || 'https://placehold.co/300x300.png' });
     }
     setIsProductDialogOpen(false);
-  };
+  }, [editingProduct, addProduct, updateProduct]);
   
-  const handleIngredientSubmit = (data: z.infer<typeof ingredientSchema>) => {
+  const handleIngredientSubmit = React.useCallback((data: z.infer<typeof ingredientSchema>) => {
     if (editingIngredient) {
       updateIngredient({ ...editingIngredient, ...data });
     } else {
       addIngredient(data);
     }
     setIsIngredientDialogOpen(false);
-  };
+  }, [editingIngredient, addIngredient, updateIngredient]);
 
-  const handleCategorySubmit = (data: z.infer<typeof categorySchema>) => {
+  const handleCategorySubmit = React.useCallback((data: z.infer<typeof categorySchema>) => {
     const isDuplicate = categories.some(
       c => c.name.toLowerCase() === data.name.toLowerCase() && c.id !== editingCategory?.id
     );
@@ -196,9 +196,9 @@ export default function InventoryPage() {
       addCategory(data);
     }
     setIsCategoryDialogOpen(false);
-  };
+  }, [categories, editingCategory, addCategory, updateCategory, categoryForm]);
   
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = React.useCallback(() => {
     if (!deletingItem) return;
     if (deletingItem.type === 'product') {
       deleteProduct(deletingItem.id);
@@ -218,29 +218,29 @@ export default function InventoryPage() {
     }
     setIsDeleteDialogOpen(false);
     setDeletingItem(null);
-  };
+  }, [deletingItem, deleteProduct, deleteIngredient, deleteCategory, products, toast]);
 
-  const openProductDialog = (product: Product | null) => {
+  const openProductDialog = React.useCallback((product: Product | null) => {
     setEditingProduct(product);
     setIsProductDialogOpen(true);
-  };
+  }, []);
 
-  const openIngredientDialog = (ingredient: Ingredient | null) => {
+  const openIngredientDialog = React.useCallback((ingredient: Ingredient | null) => {
     setEditingIngredient(ingredient);
     setIsIngredientDialogOpen(true);
-  };
+  }, []);
 
-  const openCategoryDialog = (category: Category | null) => {
+  const openCategoryDialog = React.useCallback((category: Category | null) => {
     setEditingCategory(category);
     setIsCategoryDialogOpen(true);
-  };
+  }, []);
   
-  const openDeleteDialog = (item: { type: 'product' | 'ingredient' | 'category'; id: string; name: string }) => {
+  const openDeleteDialog = React.useCallback((item: { type: 'product' | 'ingredient' | 'category'; id: string; name: string }) => {
     setDeletingItem(item);
     setIsDeleteDialogOpen(true);
-  };
+  }, []);
 
-  const handleExport = (data: (Product | Ingredient)[], filename: string) => {
+  const handleExport = React.useCallback((data: (Product | Ingredient)[], filename: string) => {
     if (data.length === 0) return;
     const headers = Object.keys(data[0]);
     const csvContent = [
@@ -259,7 +259,7 @@ export default function InventoryPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+  }, []);
   
   return (
     <AppShell>

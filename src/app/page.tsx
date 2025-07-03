@@ -20,7 +20,7 @@ export default function CashierPage() {
   
   const categories = ["Todos", ...allCategories.map(c => c.name)];
 
-  const addToCart = (product: Product, isCombo: boolean) => {
+  const addToCart = React.useCallback((product: Product, isCombo: boolean) => {
     const cartItemId = product.id + (isCombo ? '-combo' : '-single');
     const price = isCombo ? product.comboPrice! : product.price;
     const name = product.name + (isCombo ? ' (Combo)' : '');
@@ -36,9 +36,9 @@ export default function CashierPage() {
       }
       return [...prevCart, { id: cartItemId, productId: product.id, name, price, quantity: 1, image: product.image }];
     });
-  };
+  }, []);
 
-  const updateQuantity = (cartItemId: string, quantity: number) => {
+  const updateQuantity = React.useCallback((cartItemId: string, quantity: number) => {
     setCart(prevCart => {
       if (quantity === 0) {
         return prevCart.filter(item => item.id !== cartItemId);
@@ -47,11 +47,11 @@ export default function CashierPage() {
         item.id === cartItemId ? { ...item, quantity } : item
       );
     });
-  };
+  }, []);
 
-  const clearCart = () => {
+  const clearCart = React.useCallback(() => {
     setCart([]);
-  };
+  }, []);
 
   const filteredProducts = (category: string) => {
       return category === "Todos" ? products : products.filter(p => p.category === category);

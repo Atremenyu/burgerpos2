@@ -139,25 +139,25 @@ export default function ReportsPage() {
     })).sort((a,b) => b.totalSpent - a.totalSpent);
   }, [orders]);
 
-  const handleExpenseSubmit = (data: z.infer<typeof expenseSchema>) => {
+  const handleExpenseSubmit = React.useCallback((data: z.infer<typeof expenseSchema>) => {
     addExpense(data);
     setIsExpenseDialogOpen(false);
     expenseForm.reset();
-  };
+  }, [addExpense, expenseForm]);
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = React.useCallback(() => {
     if (!deletingItem) return;
     if (deletingItem.type === 'expense') {
       deleteExpense(deletingItem.id);
     }
     setIsDeleteDialogOpen(false);
     setDeletingItem(null);
-  };
+  }, [deletingItem, deleteExpense]);
   
-  const openDeleteDialog = (item: { type: 'expense'; id: string; name: string }) => {
+  const openDeleteDialog = React.useCallback((item: { type: 'expense'; id: string; name: string }) => {
     setDeletingItem(item);
     setIsDeleteDialogOpen(true);
-  };
+  }, []);
   
   return (
     <AppShell>

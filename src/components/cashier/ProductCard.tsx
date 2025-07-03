@@ -1,5 +1,7 @@
+
 "use client";
 
+import * as React from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,7 +15,7 @@ interface ProductCardProps {
   onAddToCart: (product: Product, isCombo: boolean) => void;
 }
 
-export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const isOutOfStock = product.stock === 0;
 
   return (
@@ -76,3 +78,5 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     </Card>
   );
 }
+
+export default React.memo(ProductCard);

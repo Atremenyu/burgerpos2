@@ -35,56 +35,56 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
 
-  const addProduct = (productData: Omit<Product, 'id' | 'ingredients'>) => {
+  const addProduct = React.useCallback((productData: Omit<Product, 'id' | 'ingredients'>) => {
     const newProduct: Product = {
       id: `prod${Date.now()}`,
       ...productData,
       ingredients: [],
     };
     setProducts(prev => [newProduct, ...prev]);
-  };
+  }, []);
 
-  const updateProduct = (updatedProduct: Product) => {
+  const updateProduct = React.useCallback((updatedProduct: Product) => {
     setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
-  };
+  }, []);
   
-  const deleteProduct = (productId: string) => {
+  const deleteProduct = React.useCallback((productId: string) => {
     setProducts(prev => prev.filter(p => p.id !== productId));
-  };
+  }, []);
 
-  const addIngredient = (ingredientData: Omit<Ingredient, 'id'>) => {
+  const addIngredient = React.useCallback((ingredientData: Omit<Ingredient, 'id'>) => {
     const newIngredient: Ingredient = {
       id: `ing${Date.now()}`,
       ...ingredientData,
     };
     setIngredients(prev => [newIngredient, ...prev]);
-  };
+  }, []);
   
-  const updateIngredient = (updatedIngredient: Ingredient) => {
+  const updateIngredient = React.useCallback((updatedIngredient: Ingredient) => {
     setIngredients(prev => prev.map(i => i.id === updatedIngredient.id ? updatedIngredient : i));
-  };
+  }, []);
 
-  const deleteIngredient = (ingredientId: string) => {
+  const deleteIngredient = React.useCallback((ingredientId: string) => {
     setIngredients(prev => prev.filter(i => i.id !== ingredientId));
-  };
+  }, []);
 
-  const addCategory = (categoryData: Omit<Category, 'id'>) => {
+  const addCategory = React.useCallback((categoryData: Omit<Category, 'id'>) => {
     const newCategory: Category = {
       id: `cat${Date.now()}`,
       ...categoryData,
     };
     setCategories(prev => [newCategory, ...prev]);
-  };
+  }, []);
 
-  const updateCategory = (updatedCategory: Category) => {
+  const updateCategory = React.useCallback((updatedCategory: Category) => {
     setCategories(prev => prev.map(c => c.id === updatedCategory.id ? updatedCategory : c));
-  };
+  }, []);
   
-  const deleteCategory = (categoryId: string) => {
+  const deleteCategory = React.useCallback((categoryId: string) => {
     setCategories(prev => prev.filter(c => c.id !== categoryId));
-  };
+  }, []);
   
-  const addOrder = (cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", customerName?: string, customerPhone?: string) => {
+  const addOrder = React.useCallback((cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", customerName?: string, customerPhone?: string) => {
     const newOrder: Order = {
         id: `ord${Date.now()}`,
         items: cart,
@@ -96,30 +96,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         customerPhone: customerPhone && customerPhone.trim() !== '' ? customerPhone : undefined
     };
     setOrders(prev => [newOrder, ...prev]);
-  };
+  }, []);
   
-  const updateOrderStatus = (orderId: string, status: Order["status"], prepTime?: number) => {
+  const updateOrderStatus = React.useCallback((orderId: string, status: Order["status"], prepTime?: number) => {
     setOrders(prevOrders =>
       prevOrders.map(order =>
         order.id === orderId ? { ...order, status, ...(prepTime && { prepTime }) } : order
       )
     );
-  };
+  }, []);
   
-  const addExpense = (expenseData: Omit<Expense, 'id' | 'timestamp'>) => {
+  const addExpense = React.useCallback((expenseData: Omit<Expense, 'id' | 'timestamp'>) => {
     const newExpense: Expense = {
       id: `exp${Date.now()}`,
       timestamp: new Date().toISOString(),
       ...expenseData,
     };
     setExpenses(prev => [newExpense, ...prev]);
-  };
+  }, []);
 
-  const deleteExpense = (expenseId: string) => {
+  const deleteExpense = React.useCallback((expenseId: string) => {
     setExpenses(prev => prev.filter(e => e.id !== expenseId));
-  };
+  }, []);
 
-  const value = {
+  const value = React.useMemo(() => ({
     products,
     ingredients,
     categories,
@@ -138,7 +138,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     updateOrderStatus,
     addExpense,
     deleteExpense,
-  };
+  }), [
+    products, ingredients, categories, orders, expenses, 
+    addProduct, updateProduct, deleteProduct, 
+    addIngredient, updateIngredient, deleteIngredient, 
+    addCategory, updateCategory, deleteCategory,
+    addOrder, updateOrderStatus,
+    addExpense, deleteExpense
+  ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
