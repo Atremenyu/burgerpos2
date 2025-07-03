@@ -6,7 +6,7 @@ import AppShell from "@/components/AppShell";
 import StatCard from "@/components/reports/StatCard";
 import SalesChart from "@/components/reports/SalesChart";
 import TopProductsChart from "@/components/reports/TopProductsChart";
-import { DollarSign, ShoppingCart, UtensilsCrossed, Calendar as CalendarIcon, History, Users, FileText, PlusCircle, Trash2, Briefcase, CreditCard, Landmark } from "lucide-react";
+import { DollarSign, ShoppingCart, UtensilsCrossed, Calendar as CalendarIcon, History, Users, FileText, PlusCircle, Trash2, Briefcase, CreditCard, Landmark, Download } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import { isWithinInterval, startOfMonth, format, isSameDay, startOfDay, endOfDay, formatDistanceStrict } from "date-fns";
 import { es } from "date-fns/locale";
@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
 
 const expenseSchema = z.object({
   description: z.string().min(1, { message: "La descripción es requerida." }),
@@ -76,7 +77,8 @@ type CustomerData = {
 };
 
 export default function ReportsPage() {
-  const { orders, products, expenses, addExpense, deleteExpense, shifts, currentUser } = useAppContext();
+  const { orders, products, expenses, addExpense, deleteExpense, shifts, currentUser, customers: allCustomers } = useAppContext();
+  const { toast } = useToast();
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
   const [selectedCustomer, setSelectedCustomer] = React.useState<CustomerData | null>(null);
 
@@ -88,6 +90,34 @@ export default function ReportsPage() {
     resolver: zodResolver(expenseSchema),
     defaultValues: { description: '', amount: 0 },
   });
+
+  const handleExport = React.useCallback((data: any[], filename: string) => {
+    if (data.length === 0) {
+      toast({
+          title: "Sin datos para exportar",
+          description: "La tabla seleccionada está vacía.",
+          variant: "destructive",
+      });
+      return;
+    }
+    const headers = Object.keys(data[0]);
+    const csvContent = [
+      headers.join(','),
+      ...data.map(row => headers.map(header => JSON.stringify((row as any)[header])).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.href) {
+      URL.revokeObjectURL(link.href);
+    }
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [toast]);
 
   const monthlyStats = React.useMemo(() => {
     const today = new Date();
@@ -227,8 +257,11 @@ export default function ReportsPage() {
                     />
                 </div>
                  <Card>
-                    <CardHeader>
+                    <CardHeader className="flex-row items-center justify-between">
                         <CardTitle>Pedidos del {selectedDate ? format(selectedDate, 'PPP', { locale: es }) : ''}</CardTitle>
+                        <Button variant="outline" onClick={() => handleExport(dailyOrders, `pedidos_diarios_${selectedDate ? format(selectedDate, 'yyyy-MM-dd') : 'export'}.csv`)} disabled={!selectedDate || dailyOrders.length === 0}>
+                           <Download className="mr-2 h-4 w-4" /> Exportar CSV
+                        </Button>
                     </CardHeader>
                     <CardContent>
                         <ScrollArea className="h-[400px]">
@@ -295,9 +328,14 @@ export default function ReportsPage() {
 
           <TabsContent value="shifts" className="mt-6">
             <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Briefcase className="h-5 w-5" /> Historial de Turnos</CardTitle>
-                    <CardDescription>Resumen de todos los turnos de usuario completados.</CardDescription>
+                <CardHeader className="flex-row items-center justify-between">
+                    <div>
+                        <CardTitle className="flex items-center gap-2"><Briefcase className="h-5 w-5" /> Historial de Turnos</CardTitle>
+                        <CardDescription>Resumen de todos los turnos de usuario completados.</CardDescription>
+                    </div>
+                    <Button variant="outline" onClick={() => handleExport(shifts, 'turnos.csv')}>
+                       <Download className="mr-2 h-4 w-4" /> Exportar CSV
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     <ScrollArea className="h-[600px]">
@@ -341,10 +379,15 @@ export default function ReportsPage() {
                   <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" /> Registro de Gastos</CardTitle>
                   <CardDescription>Añade y gestiona los gastos de tu negocio.</CardDescription>
                 </div>
-                <Button onClick={() => setIsExpenseDialogOpen(true)}>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Añadir Gasto
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" onClick={() => handleExport(expenses, 'gastos.csv')}>
+                       <Download className="mr-2 h-4 w-4" /> Exportar CSV
+                    </Button>
+                    <Button onClick={() => setIsExpenseDialogOpen(true)}>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Añadir Gasto
+                    </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[600px]">
@@ -383,9 +426,14 @@ export default function ReportsPage() {
 
           <TabsContent value="history" className="mt-6">
               <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><History className="h-5 w-5" /> Historial Completo</CardTitle>
-                    <CardDescription>Todos los pedidos registrados en el sistema.</CardDescription>
+                <CardHeader className="flex-row items-center justify-between">
+                    <div>
+                        <CardTitle className="flex items-center gap-2"><History className="h-5 w-5" /> Historial Completo</CardTitle>
+                        <CardDescription>Todos los pedidos registrados en el sistema.</CardDescription>
+                    </div>
+                    <Button variant="outline" onClick={() => handleExport(orders, 'historial_pedidos.csv')}>
+                       <Download className="mr-2 h-4 w-4" /> Exportar CSV
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     <ScrollArea className="h-[600px]">
@@ -437,9 +485,14 @@ export default function ReportsPage() {
 
           <TabsContent value="customers" className="mt-6">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" /> Base de Datos de Clientes</CardTitle>
-                <CardDescription>Visualiza todos tus clientes y su historial de pedidos.</CardDescription>
+              <CardHeader className="flex-row items-center justify-between">
+                <div>
+                    <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" /> Base de Datos de Clientes</CardTitle>
+                    <CardDescription>Visualiza todos tus clientes y su historial de pedidos.</CardDescription>
+                </div>
+                <Button variant="outline" onClick={() => handleExport(customers, 'clientes.csv')}>
+                    <Download className="mr-2 h-4 w-4" /> Exportar CSV
+                </Button>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[600px]">
