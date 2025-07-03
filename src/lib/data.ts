@@ -110,7 +110,7 @@ export const initialOrders: Order[] = [
     ],
     total: 14.47,
     timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-    status: 'Preparando',
+    status: 'Pendiente',
     paymentMethod: 'Tarjeta',
     customerName: 'John Doe',
   },
@@ -121,7 +121,7 @@ export const initialOrders: Order[] = [
     ],
     total: 23.98,
     timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-    status: 'Preparando',
+    status: 'Pendiente',
     paymentMethod: 'Efectivo',
   },
   {

@@ -29,10 +29,11 @@ export type Order = {
   items: CartItem[];
   total: number;
   timestamp: string;
-  status: 'Preparando' | 'Listo' | 'Entregado';
+  status: 'Pendiente' | 'Preparando' | 'Listo' | 'Entregado';
   paymentMethod: 'Efectivo' | 'Tarjeta';
   customerName?: string;
   customerPhone?: string;
+  prepTime?: number;
 };
 
 export type Expense = {
