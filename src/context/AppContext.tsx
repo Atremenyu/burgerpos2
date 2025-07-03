@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import type { Product, Ingredient, Order, CartItem } from "@/types";
-import { products as initialProducts, ingredients as initialIngredients, initialOrders } from "@/lib/data";
+import { products as initialProducts, ingredients as initialIngredients } from "@/lib/data";
 
 interface AppContextType {
   products: Product[];
@@ -15,7 +15,7 @@ interface AppContextType {
   addIngredient: (ingredient: Omit<Ingredient, 'id'>) => void;
   updateIngredient: (ingredient: Ingredient) => void;
   deleteIngredient: (ingredientId: string) => void;
-  addOrder: (cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", customerName?: string) => void;
+  addOrder: (cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", customerName?: string, customerPhone?: string) => void;
   updateOrderStatus: (orderId: string, status: Order['status'], prepTime?: number) => void;
 }
 
@@ -24,7 +24,7 @@ const AppContext = React.createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = React.useState<Product[]>(initialProducts);
   const [ingredients, setIngredients] = React.useState<Ingredient[]>(initialIngredients);
-  const [orders, setOrders] = React.useState<Order[]>(initialOrders);
+  const [orders, setOrders] = React.useState<Order[]>([]);
 
   const addProduct = (productData: Omit<Product, 'id' | 'ingredients'>) => {
     const newProduct: Product = {
@@ -59,7 +59,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setIngredients(prev => prev.filter(i => i.id !== ingredientId));
   };
   
-  const addOrder = (cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", customerName?: string) => {
+  const addOrder = (cart: CartItem[], total: number, paymentMethod: "Efectivo" | "Tarjeta", customerName?: string, customerPhone?: string) => {
     const newOrder: Order = {
         id: `ord${Date.now()}`,
         items: cart,
@@ -67,7 +67,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         timestamp: new Date().toISOString(),
         status: 'Pendiente',
         paymentMethod,
-        customerName: customerName && customerName.trim() !== '' ? customerName : undefined
+        customerName: customerName && customerName.trim() !== '' ? customerName : undefined,
+        customerPhone: customerPhone && customerPhone.trim() !== '' ? customerPhone : undefined
     };
     setOrders(prev => [newOrder, ...prev]);
   };

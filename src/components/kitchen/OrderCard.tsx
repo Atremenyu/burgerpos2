@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -140,6 +141,7 @@ export default function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
           <span>${order.total.toFixed(2)}</span>
         </div>
         {order.customerName && <p className="text-sm text-muted-foreground mt-2">Cliente: {order.customerName}</p>}
+        {order.customerPhone && <p className="text-sm text-muted-foreground mt-1">Teléfono: {order.customerPhone}</p>}
         {order.status === 'Preparando' && order.prepTime && (
           <div className="flex items-center text-sm text-muted-foreground mt-3 pt-3 border-t">
             <Timer className="h-4 w-4 mr-2 text-primary" />
