@@ -6,7 +6,7 @@ import AppShell from "@/components/AppShell";
 import StatCard from "@/components/reports/StatCard";
 import SalesChart from "@/components/reports/SalesChart";
 import TopProductsChart from "@/components/reports/TopProductsChart";
-import { DollarSign, ShoppingCart, UtensilsCrossed, Calendar as CalendarIcon, History, Users, FileText, PlusCircle, Trash2, Briefcase } from "lucide-react";
+import { DollarSign, ShoppingCart, UtensilsCrossed, Calendar as CalendarIcon, History, Users, FileText, PlusCircle, Trash2, Briefcase, CreditCard } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 import { isWithinInterval, startOfMonth, format, isSameDay, startOfDay, endOfDay, formatDistanceStrict } from "date-fns";
 import { es } from "date-fns/locale";
@@ -392,6 +392,7 @@ export default function ReportsPage() {
                                     <TableHead>Usuario</TableHead>
                                     <TableHead>Cliente</TableHead>
                                     <TableHead>Tipo</TableHead>
+                                    <TableHead>Método</TableHead>
                                     <TableHead>Total</TableHead>
                                     <TableHead>Estado</TableHead>
                                 </TableRow>
@@ -411,12 +412,13 @@ export default function ReportsPage() {
                                                 </span>
                                             )}
                                         </TableCell>
+                                        <TableCell>{order.paymentMethod}</TableCell>
                                         <TableCell>${order.total.toFixed(2)}</TableCell>
                                         <TableCell><Badge variant="outline">{order.status}</Badge></TableCell>
                                     </TableRow>
                                 )) : (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center">Aún no se han registrado pedidos.</TableCell>
+                                        <TableCell colSpan={8} className="text-center">Aún no se han registrado pedidos.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>

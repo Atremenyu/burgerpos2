@@ -37,7 +37,7 @@ export type Order = {
   total: number;
   timestamp: string;
   status: 'Pendiente' | 'Preparando' | 'Listo' | 'Entregado';
-  paymentMethod: 'Efectivo' | 'Tarjeta';
+  paymentMethod: 'Efectivo' | 'Tarjeta' | 'Pago de Plataforma';
   orderType: 'Comedor' | 'Para Llevar';
   deliveryPlatform?: 'Uber' | 'Didi' | 'Whatsapp' | 'Teléfono';
   customerName?: string;

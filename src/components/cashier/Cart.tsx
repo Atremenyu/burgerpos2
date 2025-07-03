@@ -12,7 +12,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus, Minus, ShoppingBag, CheckCircle, CreditCard, DollarSign, Printer, Send, Utensils, Package } from "lucide-react";
+import { Plus, Minus, ShoppingBag, CheckCircle, CreditCard, DollarSign, Printer, Send, Utensils, Package, Smartphone } from "lucide-react";
 import type { CartItem, Customer, Order } from "@/types";
 import { cn } from "@/lib/utils";
 import { useAppContext } from "@/context/AppContext";
@@ -28,7 +28,7 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
   const { addOrder, customers } = useAppContext();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [paymentStep, setPaymentStep] = React.useState(1);
-  const [paymentMethod, setPaymentMethod] = React.useState<"Efectivo" | "Tarjeta">("Tarjeta");
+  const [paymentMethod, setPaymentMethod] = React.useState<Order["paymentMethod"]>("Tarjeta");
   const [customerName, setCustomerName] = React.useState("");
   const [customerPhone, setCustomerPhone] = React.useState("");
   const [suggestions, setSuggestions] = React.useState<Customer[]>([]);
@@ -37,6 +37,17 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
   const [deliveryPlatform, setDeliveryPlatform] = React.useState<Order['deliveryPlatform']>();
 
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+  React.useEffect(() => {
+    if (deliveryPlatform === 'Uber' || deliveryPlatform === 'Didi') {
+      setPaymentMethod('Pago de Plataforma');
+    } else {
+      if (paymentMethod === 'Pago de Plataforma') {
+        setPaymentMethod('Tarjeta');
+      }
+    }
+  }, [deliveryPlatform, paymentMethod]);
+
 
   const handleProcessPayment = React.useCallback(() => {
     setPaymentStep(1);
@@ -226,7 +237,13 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
 
                 <div className="space-y-2">
                    <Label>Método de Pago</Label>
-                    <RadioGroup defaultValue={paymentMethod} onValueChange={(value: "Efectivo" | "Tarjeta") => setPaymentMethod(value)} className="flex gap-4">
+                   {(deliveryPlatform === 'Uber' || deliveryPlatform === 'Didi') ? (
+                       <div className="flex flex-col items-center justify-center rounded-md border-2 border-primary bg-muted p-4 h-[106px]">
+                           <Smartphone className="mb-3 h-6 w-6" />
+                           <p className="font-semibold">Pago en Plataforma</p>
+                       </div>
+                   ) : (
+                    <RadioGroup value={paymentMethod} onValueChange={(value: "Efectivo" | "Tarjeta") => setPaymentMethod(value)} className="flex gap-4">
                       <Label htmlFor="card" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground w-full", paymentMethod === 'Tarjeta' && 'border-primary')}>
                          <CreditCard className="mb-3 h-6 w-6" /> Tarjeta
                          <RadioGroupItem value="Tarjeta" id="card" className="sr-only"/>
@@ -236,6 +253,7 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
                          <RadioGroupItem value="Efectivo" id="cash" className="sr-only"/>
                       </Label>
                     </RadioGroup>
+                   )}
                 </div>
               </div>
               <DialogFooter>
