@@ -17,6 +17,7 @@ export type Ingredient = {
 };
 
 export type CartItem = {
+  id: string; // e.g. 'prod1-single' or 'prod1-combo'
   productId: string;
   name: string;
   price: number;

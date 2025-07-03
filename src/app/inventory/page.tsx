@@ -57,6 +57,7 @@ const productSchema = z.object({
   name: z.string().min(1, { message: "El nombre es requerido." }),
   category: z.string().min(1, { message: "La categoría es requerida." }),
   price: z.coerce.number().positive({ message: "El precio debe ser un número positivo." }),
+  comboPrice: z.coerce.number().positive().optional().or(z.literal('')),
   stock: z.coerce.number().int().min(0, { message: "Las existencias no pueden ser negativas." }),
   image: z.string().optional(),
 });
@@ -91,7 +92,7 @@ export default function InventoryPage() {
   
   const productForm = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
-    defaultValues: { name: '', category: '', price: 0, stock: 0, image: '' },
+    defaultValues: { name: '', category: '', price: 0, comboPrice: '', stock: 0, image: '' },
   });
   
   const ingredientForm = useForm<z.infer<typeof ingredientSchema>>({
@@ -106,10 +107,11 @@ export default function InventoryPage() {
             name: editingProduct.name,
             category: editingProduct.category,
             price: editingProduct.price,
+            comboPrice: editingProduct.comboPrice || '',
             stock: editingProduct.stock,
             image: editingProduct.image,
           }
-        : { name: '', category: '', price: 0, stock: 0, image: 'https://placehold.co/300x300.png' };
+        : { name: '', category: '', price: 0, comboPrice: '', stock: 0, image: 'https://placehold.co/300x300.png' };
       
       productForm.reset(defaultValues);
       setImagePreview(defaultValues.image);
@@ -132,10 +134,14 @@ export default function InventoryPage() {
   }, [isIngredientDialogOpen, editingIngredient, ingredientForm]);
   
   const handleProductSubmit = (data: z.infer<typeof productSchema>) => {
+    const productData = {
+      ...data,
+      comboPrice: data.comboPrice ? Number(data.comboPrice) : undefined,
+    };
     if (editingProduct) {
-      updateProduct({ ...editingProduct, ...data, image: data.image || editingProduct.image });
+      updateProduct({ ...editingProduct, ...productData, image: data.image || editingProduct.image });
     } else {
-      addProduct({ ...data, image: data.image || 'https://placehold.co/300x300.png' });
+      addProduct({ ...productData, image: data.image || 'https://placehold.co/300x300.png' });
     }
     setIsProductDialogOpen(false);
   };
@@ -224,6 +230,7 @@ export default function InventoryPage() {
                 <TableHead>Nombre</TableHead>
                 <TableHead>Categoría</TableHead>
                 <TableHead>Precio</TableHead>
+                <TableHead>Precio Combo</TableHead>
                 <TableHead>Existencias</TableHead>
                 <TableHead>Acciones</TableHead>
               </TableRow>
@@ -244,6 +251,7 @@ export default function InventoryPage() {
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{product.category}</TableCell>
                   <TableCell>${product.price.toFixed(2)}</TableCell>
+                  <TableCell>{product.comboPrice ? `$${product.comboPrice.toFixed(2)}` : 'N/A'}</TableCell>
                   <TableCell>{product.stock}</TableCell>
                   <TableCell className="flex gap-2">
                      <Button variant="ghost" size="icon" onClick={() => openProductDialog(product)}><Edit className="h-4 w-4"/></Button>
@@ -331,6 +339,17 @@ export default function InventoryPage() {
                   <FormItem>
                     <FormLabel>Precio</FormLabel>
                     <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={productForm.control}
+                name="comboPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Precio Combo (Opcional)</FormLabel>
+                    <FormControl><Input type="number" step="0.01" placeholder="Ej: 11.99" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

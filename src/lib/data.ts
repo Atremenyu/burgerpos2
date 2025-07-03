@@ -16,6 +16,7 @@ export const products: Product[] = [
     id: 'prod1',
     name: 'Hamburguesa Clásica',
     price: 8.99,
+    comboPrice: 11.99,
     category: 'Hamburguesas',
     image: 'https://placehold.co/300x300.png',
     stock: 50,

@@ -18,7 +18,7 @@ import { useAppContext } from "@/context/AppContext";
 
 interface CartProps {
   cart: CartItem[];
-  onUpdateQuantity: (productId: string, quantity: number) => void;
+  onUpdateQuantity: (cartItemId: string, quantity: number) => void;
   onClearCart: () => void;
 }
 
@@ -68,18 +68,18 @@ export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps)
             ) : (
               <div className="p-4 space-y-4">
                 {cart.map(item => (
-                  <div key={item.productId} className="flex items-center gap-4">
+                  <div key={item.id} className="flex items-center gap-4">
                     <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md object-cover" data-ai-hint="burger food" />
                     <div className="flex-grow">
                       <p className="font-semibold truncate">{item.name}</p>
                       <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="icon" className="h-7 w-7 rounded-full hover:scale-110 transition-transform" onClick={() => onUpdateQuantity(item.productId, item.quantity - 1)}>
+                      <Button variant="outline" size="icon" className="h-7 w-7 rounded-full hover:scale-110 transition-transform" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}>
                         <Minus className="h-4 w-4" />
                       </Button>
                       <span className="w-6 text-center font-bold">{item.quantity}</span>
-                       <Button variant="outline" size="icon" className="h-7 w-7 rounded-full hover:scale-110 transition-transform" onClick={() => onUpdateQuantity(item.productId, item.quantity + 1)}>
+                       <Button variant="outline" size="icon" className="h-7 w-7 rounded-full hover:scale-110 transition-transform" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}>
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>

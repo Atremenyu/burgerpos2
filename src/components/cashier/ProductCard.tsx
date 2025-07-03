@@ -7,14 +7,53 @@ import { Badge } from "@/components/ui/badge";
 import type { Product } from "@/types";
 import { cn } from "@/lib/utils";
 import { PlusCircle } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart: (product: Product) => void;
+  onAddToCart: (product: Product, isCombo: boolean) => void;
 }
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const isOutOfStock = product.stock === 0;
+
+  const addToCartButton = (
+    <Button
+      className="w-full rounded-t-none"
+      onClick={() => onAddToCart(product, false)}
+      disabled={isOutOfStock}
+      size="sm"
+    >
+      <PlusCircle className="mr-2 h-4 w-4" /> Añadir
+    </Button>
+  );
+
+  const comboAddToCartButton = (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          className="w-full rounded-t-none"
+          disabled={isOutOfStock}
+          size="sm"
+        >
+          <PlusCircle className="mr-2 h-4 w-4" /> Añadir
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-2">
+        <div className="flex flex-col gap-2">
+          <Button variant="ghost" className="justify-start" onClick={() => onAddToCart(product, false)}>
+            Sencillo (${product.price.toFixed(2)})
+          </Button>
+          {product.comboPrice && (
+            <Button variant="ghost" className="justify-start" onClick={() => onAddToCart(product, true)}>
+              Combo (${product.comboPrice.toFixed(2)})
+            </Button>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+
 
   return (
     <Card
@@ -40,14 +79,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           <p className="text-muted-foreground text-xs mb-2">{product.category}</p>
           <p className="font-bold text-primary">${product.price.toFixed(2)}</p>
         </div>
-        <Button
-          className="w-full rounded-t-none"
-          onClick={() => onAddToCart(product)}
-          disabled={isOutOfStock}
-          size="sm"
-        >
-          <PlusCircle className="mr-2 h-4 w-4" /> Añadir
-        </Button>
+        {product.comboPrice ? comboAddToCartButton : addToCartButton}
       </CardContent>
     </Card>
   );

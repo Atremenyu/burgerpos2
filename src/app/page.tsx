@@ -12,6 +12,7 @@ import type { Product, CartItem } from "@/types";
 import { LayoutGrid, List, PlusCircle } from "lucide-react";
 import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function CashierPage() {
   const { products } = useAppContext();
@@ -20,27 +21,31 @@ export default function CashierPage() {
   
   const categories = ["Todos", ...Array.from(new Set(products.map(p => p.category)))];
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product, isCombo: boolean) => {
+    const cartItemId = product.id + (isCombo ? '-combo' : '-single');
+    const price = isCombo ? product.comboPrice! : product.price;
+    const name = product.name + (isCombo ? ' (Combo)' : '');
+
     setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.productId === product.id);
+      const existingItem = prevCart.find(item => item.id === cartItemId);
       if (existingItem) {
         return prevCart.map(item =>
-          item.productId === product.id
+          item.id === cartItemId
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...prevCart, { productId: product.id, name: product.name, price: product.price, quantity: 1, image: product.image }];
+      return [...prevCart, { id: cartItemId, productId: product.id, name, price, quantity: 1, image: product.image }];
     });
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (cartItemId: string, quantity: number) => {
     setCart(prevCart => {
       if (quantity === 0) {
-        return prevCart.filter(item => item.productId !== productId);
+        return prevCart.filter(item => item.id !== cartItemId);
       }
       return prevCart.map(item =>
-        item.productId === productId ? { ...item, quantity } : item
+        item.id === cartItemId ? { ...item, quantity } : item
       );
     });
   };
@@ -83,7 +88,7 @@ export default function CashierPage() {
                     {view === 'grid' ? (
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                         {filteredProducts(category).map(product => (
-                          <ProductCard key={product.id} product={product} onAddToCart={() => addToCart(product)} />
+                          <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
                         ))}
                       </div>
                     ) : (
@@ -102,14 +107,38 @@ export default function CashierPage() {
                                 <p className="font-semibold">{product.name}</p>
                                 <p className="text-sm text-muted-foreground">${product.price.toFixed(2)}</p>
                             </div>
-                            <Button
-                                size="sm"
-                                onClick={() => addToCart(product)}
-                                disabled={product.stock === 0}
-                                className="shrink-0"
-                             >
-                                <PlusCircle className="mr-2 h-4 w-4" /> Añadir
-                            </Button>
+                            <div className="shrink-0">
+                                {product.comboPrice ? (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                        <Button
+                                            size="sm"
+                                            disabled={product.stock === 0}
+                                        >
+                                            <PlusCircle className="mr-2 h-4 w-4" /> Añadir
+                                        </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-2">
+                                        <div className="flex flex-col gap-2">
+                                            <Button variant="ghost" className="justify-start" onClick={() => addToCart(product, false)}>
+                                            Sencillo (${product.price.toFixed(2)})
+                                            </Button>
+                                            <Button variant="ghost" className="justify-start" onClick={() => addToCart(product, true)}>
+                                            Combo (${product.comboPrice.toFixed(2)})
+                                            </Button>
+                                        </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                    ) : (
+                                    <Button
+                                        size="sm"
+                                        onClick={() => addToCart(product, false)}
+                                        disabled={product.stock === 0}
+                                    >
+                                        <PlusCircle className="mr-2 h-4 w-4" /> Añadir
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                         ))}
                       </div>
