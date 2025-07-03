@@ -13,6 +13,7 @@ import { LayoutGrid, List, PlusCircle } from "lucide-react";
 import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
 import LoginScreen from "@/components/cashier/LoginScreen";
+import OrderStatusTracker from "@/components/cashier/OrderStatusTracker";
 
 export default function CashierPage() {
   const { products, categories: allCategories, currentUser } = useAppContext();
@@ -162,7 +163,14 @@ export default function CashierPage() {
           </Card>
         </div>
         <div className="lg:col-span-1 h-full">
-           <Cart cart={cart} onUpdateQuantity={updateQuantity} onClearCart={clearCart} />
+            <div className="flex flex-col gap-8 h-full">
+                <div className="flex-1 min-h-0">
+                    <Cart cart={cart} onUpdateQuantity={updateQuantity} onClearCart={clearCart} />
+                </div>
+                <div className="flex-none">
+                    <OrderStatusTracker />
+                </div>
+            </div>
         </div>
       </div>
     </AppShell>
