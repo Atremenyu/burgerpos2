@@ -47,14 +47,12 @@ import {
 } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import type { Product, Ingredient, Category } from "@/types";
-import { PlusCircle, Download, Edit, Trash2, Loader2 } from "lucide-react";
+import { PlusCircle, Download, Edit, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAppContext } from "@/context/AppContext";
 import { useToast } from "@/hooks/use-toast";
-import { Textarea } from "@/components/ui/textarea";
-import { generateProductImage } from '@/ai/flows/generate-product-image-flow';
 
 const productSchema = z.object({
   name: z.string().min(1, { message: "El nombre es requerido." }),
@@ -95,8 +93,6 @@ export default function InventoryPage() {
   const [isProductDialogOpen, setIsProductDialogOpen] = React.useState(false);
   const [editingProduct, setEditingProduct] = React.useState<Product | null>(null);
   const [imagePreview, setImagePreview] = React.useState<string | null>(null);
-  const [imagePrompt, setImagePrompt] = React.useState('');
-  const [isGeneratingImage, setIsGeneratingImage] = React.useState(false);
 
   const [isIngredientDialogOpen, setIsIngredientDialogOpen] = React.useState(false);
   const [editingIngredient, setEditingIngredient] = React.useState<Ingredient | null>(null);
@@ -137,11 +133,9 @@ export default function InventoryPage() {
       
       productForm.reset(defaultValues);
       setImagePreview(defaultValues.image);
-      setImagePrompt('');
     } else {
         setImagePreview(null);
         setEditingProduct(null);
-        setImagePrompt('');
     }
   }, [isProductDialogOpen, editingProduct, productForm]);
 
@@ -204,27 +198,6 @@ export default function InventoryPage() {
     setIsCategoryDialogOpen(false);
   };
   
-  const handleGenerateImage = async () => {
-    if (!imagePrompt) return;
-    setIsGeneratingImage(true);
-    try {
-      const result = await generateProductImage({ description: imagePrompt });
-      if (result.imageUrl) {
-        productForm.setValue('image', result.imageUrl);
-        setImagePreview(result.imageUrl);
-      }
-    } catch (error) {
-      console.error("Error generating image:", error);
-      toast({
-        title: "Error de IA",
-        description: "No se pudo generar la imagen. Inténtalo de nuevo.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  };
-
   const handleDeleteConfirm = () => {
     if (!deletingItem) return;
     if (deletingItem.type === 'product') {
@@ -496,63 +469,36 @@ export default function InventoryPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Imagen del Producto</FormLabel>
-                      <Tabs defaultValue="upload">
-                        <TabsList className="grid w-full grid-cols-2">
-                          <TabsTrigger value="upload">Subir Archivo</TabsTrigger>
-                          <TabsTrigger value="ai">Generar con IA</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="upload" className="mt-2">
-                          <FormControl>
-                            <Input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  const reader = new FileReader();
-                                  reader.onloadend = () => {
-                                    const dataUrl = reader.result as string;
-                                    field.onChange(dataUrl);
-                                    setImagePreview(dataUrl);
-                                  };
-                                  reader.readAsDataURL(file);
-                                }
-                              }}
-                            />
-                          </FormControl>
-                        </TabsContent>
-                        <TabsContent value="ai" className="mt-2">
-                          <div className="space-y-2">
-                            <Textarea 
-                              placeholder="Ej: Hamburguesa de queso con tocino en un pan brioche..."
-                              value={imagePrompt}
-                              onChange={(e) => setImagePrompt(e.target.value)}
-                            />
-                            <Button type="button" onClick={handleGenerateImage} disabled={isGeneratingImage || !imagePrompt} className="w-full">
-                              {isGeneratingImage ? (
-                                <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Generando...
-                                </>
-                              ) : (
-                                'Generar Imagen'
-                              )}
-                            </Button>
-                          </div>
-                        </TabsContent>
-                      </Tabs>
-                      {imagePreview && (
-                        <div className="mt-4 flex flex-col items-center gap-2">
-                          <p className="text-sm text-muted-foreground">Vista Previa</p>
-                          <Image
-                            src={imagePreview}
-                            alt="Vista previa del producto"
-                            width={150}
-                            height={150}
-                            className="rounded-md object-cover border"
-                          />
-                        </div>
-                      )}
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              const dataUrl = reader.result as string;
+                              field.onChange(dataUrl);
+                              setImagePreview(dataUrl);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    {imagePreview && (
+                      <div className="mt-4 flex flex-col items-center gap-2">
+                        <p className="text-sm text-muted-foreground">Vista Previa</p>
+                        <Image
+                          src={imagePreview}
+                          alt="Vista previa del producto"
+                          width={150}
+                          height={150}
+                          className="rounded-md object-cover border"
+                        />
+                      </div>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
