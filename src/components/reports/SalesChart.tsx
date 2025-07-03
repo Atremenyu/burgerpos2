@@ -1,18 +1,12 @@
 "use client"
 
+import * as React from "react";
 import { Bar, BarChart, XAxis, YAxis } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-
-const data = [
-  { date: "Lun", sales: Math.floor(Math.random() * 1000) + 500 },
-  { date: "Mar", sales: Math.floor(Math.random() * 1000) + 500 },
-  { date: "Mié", sales: Math.floor(Math.random() * 1000) + 500 },
-  { date: "Jue", sales: Math.floor(Math.random() * 1000) + 500 },
-  { date: "Vie", sales: Math.floor(Math.random() * 1000) + 500 },
-  { date: "Sáb", sales: Math.floor(Math.random() * 1000) + 1000 },
-  { date: "Dom", sales: Math.floor(Math.random() * 1000) + 1200 },
-]
+import { useAppContext } from "@/context/AppContext";
+import { format, subDays, isWithinInterval } from "date-fns";
+import { es } from "date-fns/locale";
 
 const chartConfig = {
   sales: {
@@ -22,10 +16,42 @@ const chartConfig = {
 };
 
 export default function SalesChart() {
+  const { orders } = useAppContext();
+
+  const data = React.useMemo(() => {
+    const today = new Date();
+    const startDate = subDays(today, 6);
+    
+    const salesByDay = new Map<string, number>();
+    for (let i = 6; i >= 0; i--) {
+        const date = subDays(today, i);
+        const formattedDate = format(date, 'yyyy-MM-dd');
+        salesByDay.set(formattedDate, 0);
+    }
+    
+    orders.forEach(order => {
+        const orderDate = new Date(order.timestamp);
+        if (isWithinInterval(orderDate, { start: startDate, end: today })) {
+            const formattedDate = format(orderDate, 'yyyy-MM-dd');
+            if (salesByDay.has(formattedDate)) {
+                salesByDay.set(formattedDate, salesByDay.get(formattedDate)! + order.total);
+            }
+        }
+    });
+
+    const chartData = Array.from(salesByDay.entries())
+        .map(([date, sales]) => ({
+            date: format(new Date(date), "E", { locale: es }),
+            sales: sales,
+        }));
+
+    return chartData;
+  }, [orders]);
+
   return (
     <Card className="shadow-lg">
       <CardHeader>
-        <CardTitle>Ventas de esta Semana</CardTitle>
+        <CardTitle>Ventas de los Últimos 7 Días</CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
@@ -45,8 +71,8 @@ export default function SalesChart() {
               tickFormatter={(value) => `$${value}`}
             />
             <ChartTooltip
-                content={<ChartTooltipContent />}
                 cursor={{ fill: 'hsl(var(--muted))' }}
+                content={<ChartTooltipContent />}
             />
             <Bar dataKey="sales" fill="var(--color-sales)" radius={[4, 4, 0, 0]} />
           </BarChart>
