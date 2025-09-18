@@ -6,6 +6,10 @@ import { Circle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * @component RadioGroup
+ * @description A set of radio buttons that allows the user to select one option from a set.
+ */
 const RadioGroup = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>
@@ -20,6 +24,10 @@ const RadioGroup = React.forwardRef<
 })
 RadioGroup.displayName = RadioGroupPrimitive.Root.displayName
 
+/**
+ * @component RadioGroupItem
+ * @description An item in a radio group.
+ */
 const RadioGroupItem = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>

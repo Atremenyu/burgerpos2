@@ -18,12 +18,20 @@ import {
 } from "@/components/ui/chart"
 import { useAppContext } from "@/context/AppContext"
 
+/**
+ * @constant chartConfig
+ * @description The configuration for the top products chart.
+ */
 const chartConfig = {
     sold: {
         label: "Unidades Vendidas",
     }
 }
 
+/**
+ * @component TopProductsChart
+ * @description A component that displays a pie chart of the top 5 best-selling products.
+ */
 export default function TopProductsChart() {
   const { orders, products } = useAppContext();
 

@@ -55,6 +55,7 @@ import { useAppContext } from "@/context/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import LoginScreen from "@/components/cashier/LoginScreen";
 
+/** @description Zod schema for product validation. */
 const productSchema = z.object({
   name: z.string().min(1, { message: "El nombre es requerido." }),
   category: z.string().min(1, { message: "La categoría es requerida." }),
@@ -64,16 +65,23 @@ const productSchema = z.object({
   image: z.string().optional(),
 });
 
+/** @description Zod schema for ingredient validation. */
 const ingredientSchema = z.object({
   name: z.string().min(1, { message: "El nombre es requerido." }),
   stock: z.coerce.number().int().min(0, { message: "Las existencias no pueden ser negativas." }),
   unit: z.enum(['g', 'ml', 'pcs'], { required_error: "La unidad es requerida." }),
 });
 
+/** @description Zod schema for category validation. */
 const categorySchema = z.object({
   name: z.string().min(1, { message: "El nombre es requerido." }),
 });
 
+/**
+ * @page InventoryPage
+ * @description The main inventory management page, allowing users to manage products, ingredients, and categories.
+ * It features a tabbed interface for different sections and provides dialogs for creating, editing, and deleting items.
+ */
 export default function InventoryPage() {
   const { 
     products, 

@@ -33,12 +33,26 @@ const buttonVariants = cva(
   }
 )
 
+/**
+ * @typedef {object} ButtonProps
+ * @extends React.ButtonHTMLAttributes<HTMLButtonElement>
+ * @extends VariantProps<typeof buttonVariants>
+ * @property {'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'} [variant] - The visual style of the button.
+ * @property {'default' | 'sm' | 'lg' | 'icon'} [size] - The size of the button.
+ * @property {boolean} [asChild=false] - If true, the button will render as a child component, merging its props.
+ */
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }
 
+/**
+ * @component
+ * @description A clickable button, with several variants and sizes.
+ * @param {React.Ref<HTMLButtonElement>} ref - A ref to the underlying DOM element.
+ * @param {ButtonProps} props - Props for the component.
+ */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"

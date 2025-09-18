@@ -5,6 +5,12 @@ import * as SliderPrimitive from "@radix-ui/react-slider"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * @component Slider
+ * @description A slider component that allows users to select a value from a range.
+ * @param {React.Ref<React.ElementRef<typeof SliderPrimitive.Root>>} ref - A ref to the underlying DOM element.
+ * @param {React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>} props - Props for the component.
+ */
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>

@@ -7,8 +7,27 @@ import { DayPicker } from "react-day-picker"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
+/**
+ * @typedef {object} CalendarProps
+ * @extends React.ComponentProps<typeof DayPicker>
+ */
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
+/**
+ * @component
+ * @description A date picker component that allows users to select a date from a calendar.
+ * It is a styled wrapper around the `react-day-picker` library.
+ *
+ * @param {CalendarProps} props - Props for the component, inherited from `react-day-picker`.
+ * @example
+ * const [date, setDate] = React.useState<Date | undefined>(new Date())
+ * <Calendar
+ *   mode="single"
+ *   selected={date}
+ *   onSelect={setDate}
+ *   className="rounded-md border"
+ * />
+ */
 function Calendar({
   className,
   classNames,

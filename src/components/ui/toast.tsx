@@ -7,8 +7,13 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/** @description The provider for the toast component. */
 const ToastProvider = ToastPrimitives.Provider
 
+/**
+ * @component ToastViewport
+ * @description The viewport for the toast component.
+ */
 const ToastViewport = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Viewport>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport>
@@ -40,6 +45,11 @@ const toastVariants = cva(
   }
 )
 
+/**
+ * @component Toast
+ * @description The main component for a toast notification.
+ * @param {'default' | 'destructive'} [variant='default'] - The variant of the toast.
+ */
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
@@ -55,6 +65,10 @@ const Toast = React.forwardRef<
 })
 Toast.displayName = ToastPrimitives.Root.displayName
 
+/**
+ * @component ToastAction
+ * @description An action button for a toast notification.
+ */
 const ToastAction = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Action>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Action>
@@ -70,6 +84,10 @@ const ToastAction = React.forwardRef<
 ))
 ToastAction.displayName = ToastPrimitives.Action.displayName
 
+/**
+ * @component ToastClose
+ * @description A button to close a toast notification.
+ */
 const ToastClose = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Close>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Close>
@@ -88,6 +106,10 @@ const ToastClose = React.forwardRef<
 ))
 ToastClose.displayName = ToastPrimitives.Close.displayName
 
+/**
+ * @component ToastTitle
+ * @description The title of a toast notification.
+ */
 const ToastTitle = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Title>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Title>
@@ -100,6 +122,10 @@ const ToastTitle = React.forwardRef<
 ))
 ToastTitle.displayName = ToastPrimitives.Title.displayName
 
+/**
+ * @component ToastDescription
+ * @description The description of a toast notification.
+ */
 const ToastDescription = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Description>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Description>

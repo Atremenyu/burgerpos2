@@ -2,6 +2,24 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * @component
+ * @description A container that groups related content and actions.
+ *
+ * @example
+ * <Card>
+ *   <CardHeader>
+ *     <CardTitle>Card Title</CardTitle>
+ *     <CardDescription>Card Description</CardDescription>
+ *   </CardHeader>
+ *   <CardContent>
+ *     <p>Card Content</p>
+ *   </CardContent>
+ *   <CardFooter>
+ *     <p>Card Footer</p>
+ *   </CardFooter>
+ * </Card>
+ */
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -17,6 +35,12 @@ const Card = React.forwardRef<
 ))
 Card.displayName = "Card"
 
+/**
+ * @component
+ * @description The header of the card, typically containing the title and description.
+ * @param {React.Ref<HTMLDivElement>} ref - A ref to the underlying DOM element.
+ * @param {React.HTMLAttributes<HTMLDivElement>} props - Props for the component.
+ */
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -29,26 +53,36 @@ const CardHeader = React.forwardRef<
 ))
 CardHeader.displayName = "CardHeader"
 
+/**
+ * @component
+ * @description The title of the card. Should be used within a `CardHeader`.
+ * @param {React.Ref<HTMLHeadingElement>} ref - A ref to the underlying DOM element.
+ * @param {React.HTMLAttributes<HTMLHeadingElement>} props - Props for the component.
+ */
 const CardTitle = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => (
-  <div
+  <h3
     ref={ref}
-    className={cn(
-      "text-2xl font-semibold leading-none tracking-tight",
-      className
-    )}
+    className={cn("text-2xl font-semibold leading-none tracking-tight", className)}
     {...props}
   />
-))
+));
 CardTitle.displayName = "CardTitle"
 
+
+/**
+ * @component
+ * @description The description of the card. Should be used within a `CardHeader`.
+ * @param {React.Ref<HTMLParagraphElement>} ref - A ref to the underlying DOM element.
+ * @param {React.HTMLAttributes<HTMLParagraphElement>} props - Props for the component.
+ */
 const CardDescription = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <div
+  <p
     ref={ref}
     className={cn("text-sm text-muted-foreground", className)}
     {...props}
@@ -56,6 +90,12 @@ const CardDescription = React.forwardRef<
 ))
 CardDescription.displayName = "CardDescription"
 
+/**
+ * @component
+ * @description The main content of the card.
+ * @param {React.Ref<HTMLDivElement>} ref - A ref to the underlying DOM element.
+ * @param {React.HTMLAttributes<HTMLDivElement>} props - Props for the component.
+ */
 const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -64,6 +104,12 @@ const CardContent = React.forwardRef<
 ))
 CardContent.displayName = "CardContent"
 
+/**
+ * @component
+ * @description The footer of the card, typically containing action buttons.
+ * @param {React.Ref<HTMLDivElement>} ref - A ref to the underlying DOM element.
+ * @param {React.HTMLAttributes<HTMLDivElement>} props - Props for the component.
+ */
 const CardFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>

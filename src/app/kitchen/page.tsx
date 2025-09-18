@@ -10,6 +10,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
 import LoginScreen from "@/components/cashier/LoginScreen";
 
+/**
+ * @page KitchenPage
+ * @description The kitchen display system (KDS) page, which shows orders sorted into tabs by their status.
+ * It allows kitchen staff to view and manage the status of orders.
+ */
 export default function KitchenPage() {
   const { orders, updateOrderStatus, currentUser } = useAppContext();
 
