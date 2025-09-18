@@ -6,36 +6,60 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * @component MenubarMenu
+ * @description A menu in the menubar.
+ */
 function MenubarMenu({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Menu>) {
   return <MenubarPrimitive.Menu {...props} />
 }
 
+/**
+ * @component MenubarGroup
+ * @description A group of items in a menu.
+ */
 function MenubarGroup({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Group>) {
   return <MenubarPrimitive.Group {...props} />
 }
 
+/**
+ * @component MenubarPortal
+ * @description A portal for the menubar content.
+ */
 function MenubarPortal({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Portal>) {
   return <MenubarPrimitive.Portal {...props} />
 }
 
+/**
+ * @component MenubarRadioGroup
+ * @description A group of radio items in a menu.
+ */
 function MenubarRadioGroup({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.RadioGroup>) {
   return <MenubarPrimitive.RadioGroup {...props} />
 }
 
+/**
+ * @component MenubarSub
+ * @description A sub-menu in the menubar.
+ */
 function MenubarSub({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Sub>) {
   return <MenubarPrimitive.Sub data-slot="menubar-sub" {...props} />
 }
 
+/**
+ * @component Menubar
+ * @description The root component for the menubar.
+ */
 const Menubar = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Root>
@@ -51,6 +75,10 @@ const Menubar = React.forwardRef<
 ))
 Menubar.displayName = MenubarPrimitive.Root.displayName
 
+/**
+ * @component MenubarTrigger
+ * @description The trigger for a menu.
+ */
 const MenubarTrigger = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Trigger>
@@ -66,6 +94,11 @@ const MenubarTrigger = React.forwardRef<
 ))
 MenubarTrigger.displayName = MenubarPrimitive.Trigger.displayName
 
+/**
+ * @component MenubarSubTrigger
+ * @description The trigger for a sub-menu.
+ * @param {boolean} [inset] - Whether the item is inset.
+ */
 const MenubarSubTrigger = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.SubTrigger>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.SubTrigger> & {
@@ -87,6 +120,10 @@ const MenubarSubTrigger = React.forwardRef<
 ))
 MenubarSubTrigger.displayName = MenubarPrimitive.SubTrigger.displayName
 
+/**
+ * @component MenubarSubContent
+ * @description The content of a sub-menu.
+ */
 const MenubarSubContent = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.SubContent>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.SubContent>
@@ -102,6 +139,10 @@ const MenubarSubContent = React.forwardRef<
 ))
 MenubarSubContent.displayName = MenubarPrimitive.SubContent.displayName
 
+/**
+ * @component MenubarContent
+ * @description The content of a menu.
+ */
 const MenubarContent = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Content>
@@ -127,6 +168,11 @@ const MenubarContent = React.forwardRef<
 )
 MenubarContent.displayName = MenubarPrimitive.Content.displayName
 
+/**
+ * @component MenubarItem
+ * @description An item in a menu.
+ * @param {boolean} [inset] - Whether the item is inset.
+ */
 const MenubarItem = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Item> & {
@@ -145,6 +191,10 @@ const MenubarItem = React.forwardRef<
 ))
 MenubarItem.displayName = MenubarPrimitive.Item.displayName
 
+/**
+ * @component MenubarCheckboxItem
+ * @description A checkbox item in a menu.
+ */
 const MenubarCheckboxItem = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.CheckboxItem>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.CheckboxItem>
@@ -168,6 +218,10 @@ const MenubarCheckboxItem = React.forwardRef<
 ))
 MenubarCheckboxItem.displayName = MenubarPrimitive.CheckboxItem.displayName
 
+/**
+ * @component MenubarRadioItem
+ * @description A radio item in a menu.
+ */
 const MenubarRadioItem = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.RadioItem>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.RadioItem>
@@ -190,6 +244,11 @@ const MenubarRadioItem = React.forwardRef<
 ))
 MenubarRadioItem.displayName = MenubarPrimitive.RadioItem.displayName
 
+/**
+ * @component MenubarLabel
+ * @description A label in a menu.
+ * @param {boolean} [inset] - Whether the label is inset.
+ */
 const MenubarLabel = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.Label>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Label> & {
@@ -208,6 +267,10 @@ const MenubarLabel = React.forwardRef<
 ))
 MenubarLabel.displayName = MenubarPrimitive.Label.displayName
 
+/**
+ * @component MenubarSeparator
+ * @description A separator in a menu.
+ */
 const MenubarSeparator = React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Separator>
@@ -220,6 +283,10 @@ const MenubarSeparator = React.forwardRef<
 ))
 MenubarSeparator.displayName = MenubarPrimitive.Separator.displayName
 
+/**
+ * @component MenubarShortcut
+ * @description A shortcut in a menu item.
+ */
 const MenubarShortcut = ({
   className,
   ...props
@@ -234,7 +301,7 @@ const MenubarShortcut = ({
     />
   )
 }
-MenubarShortcut.displayname = "MenubarShortcut"
+MenubarShortcut.displayName = "MenubarShortcut"
 
 export {
   Menubar,

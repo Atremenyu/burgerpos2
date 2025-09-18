@@ -8,6 +8,10 @@ import { useAppContext } from "@/context/AppContext";
 import { format, subDays, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
 
+/**
+ * @constant chartConfig
+ * @description The configuration for the sales chart.
+ */
 const chartConfig = {
   sales: {
     label: "Ventas",
@@ -15,6 +19,10 @@ const chartConfig = {
   },
 };
 
+/**
+ * @component SalesChart
+ * @description A component that displays a bar chart of the sales over the last 7 days.
+ */
 export default function SalesChart() {
   const { orders } = useAppContext();
 

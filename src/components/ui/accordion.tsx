@@ -6,8 +6,32 @@ import { ChevronDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * @component
+ * @description A vertically stacked set of interactive headings that each reveal a section of content.
+ * This component is built on top of the Radix UI Accordion primitive.
+ *
+ * @example
+ * <Accordion type="single" collapsible>
+ *   <AccordionItem value="item-1">
+ *     <AccordionTrigger>Is it accessible?</AccordionTrigger>
+ *     <AccordionContent>
+ *       Yes. It adheres to the WAI-ARIA design pattern.
+ *     </AccordionContent>
+ *   </AccordionItem>
+ * </Accordion>
+ */
+
 const Accordion = AccordionPrimitive.Root
 
+/**
+ * @component
+ * @description A single item within the accordion, containing a trigger and content.
+ * It wraps the Radix UI Accordion Item primitive.
+ *
+ * @param {React.ElementRef<typeof AccordionPrimitive.Item>} ref - A ref to the underlying DOM element.
+ * @param {React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>} props - Props for the component.
+ */
 const AccordionItem = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
@@ -20,6 +44,15 @@ const AccordionItem = React.forwardRef<
 ))
 AccordionItem.displayName = "AccordionItem"
 
+/**
+ * @component
+ * @description The trigger button that toggles the visibility of an accordion item's content.
+ * It wraps the Radix UI Accordion Trigger primitive.
+ *
+ * @param {React.ElementRef<typeof AccordionPrimitive.Trigger>} ref - A ref to the underlying DOM element.
+ * @param {React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>} props - Props for the component.
+ * @param {React.ReactNode} props.children - The content of the trigger.
+ */
 const AccordionTrigger = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
@@ -40,6 +73,15 @@ const AccordionTrigger = React.forwardRef<
 ))
 AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName
 
+/**
+ * @component
+ * @description The content panel that is revealed when an accordion item is opened.
+ * It wraps the Radix UI Accordion Content primitive.
+ *
+ * @param {React.ElementRef<typeof AccordionPrimitive.Content>} ref - A ref to the underlying DOM element.
+ * @param {React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>} props - Props for the component.
+ * @param {React.ReactNode} props.children - The content to be displayed.
+ */
 const AccordionContent = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>

@@ -16,6 +16,10 @@ import { Button } from "@/components/ui/button";
 
 const NOTIFICATION_SOUND_URL = "https://actions.google.com/sounds/v1/alarms/dinner_bell_triangle.ogg";
 
+/**
+ * @constant statusConfig
+ * @description Configuration for the display of different order statuses, including icons, colors, and labels.
+ */
 const statusConfig: Record<Order['status'], { icon: React.ElementType; color: string; label: string }> = {
     Pendiente: { icon: Clock, color: "bg-orange-500", label: "Pendiente" },
     Preparando: { icon: Flame, color: "bg-yellow-500", label: "Preparando" },
@@ -23,6 +27,11 @@ const statusConfig: Record<Order['status'], { icon: React.ElementType; color: st
     Entregado: { icon: Check, color: "bg-gray-500", label: "Entregado" },
 };
 
+/**
+ * @component OrderStatusTracker
+ * @description A component that displays a real-time list of active orders and their statuses.
+ * It plays a notification sound when an order's status changes to "Listo".
+ */
 export default function OrderStatusTracker() {
     const { orders, updateOrderStatus } = useAppContext();
     const prevOrdersRef = React.useRef<Order[]>([]);

@@ -12,6 +12,12 @@ export const metadata: Metadata = {
   description: 'Un sistema POS para hamburguesería',
 };
 
+/**
+ * @component RootLayout
+ * @description The root layout for the entire application. It sets up the HTML shell and wraps the application in providers.
+ * @param {object} props - Props for the component.
+ * @param {React.ReactNode} props.children - The child components to render.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{

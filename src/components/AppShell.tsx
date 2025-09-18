@@ -22,6 +22,10 @@ import { useTheme } from "next-themes";
 import * as React from 'react';
 import { useAppContext } from "@/context/AppContext";
 
+/**
+ * @constant allNavLinks
+ * @description An array of all possible navigation links in the application, including their paths, labels, icons, and required permissions.
+ */
 const allNavLinks = [
   { href: "/", label: "Caja", icon: ShoppingCart, permission: 'caja' },
   { href: "/kitchen", label: "Cocina", icon: ChefHat, permission: 'kitchen' },
@@ -30,6 +34,12 @@ const allNavLinks = [
   { href: "/admin", label: "Admin", icon: Lock, permission: 'admin' },
 ];
 
+/**
+ * @component AppShell
+ * @description The main layout shell for the application. It includes the header, navigation (desktop and mobile), and the main content area.
+ * @param {object} props - Props for the component.
+ * @param {React.ReactNode} props.children - The page content to be rendered within the shell.
+ */
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();

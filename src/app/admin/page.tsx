@@ -45,12 +45,14 @@ import { Switch } from "@/components/ui/switch";
 import type { User, Role, OrderType, PaymentMethod, DeliveryPlatform } from "@/types";
 import LoginScreen from "@/components/cashier/LoginScreen";
 
+/** @description Zod schema for user validation. */
 const userSchema = z.object({
   name: z.string().min(1, "El nombre es requerido."),
   pin: z.string().length(4, "El PIN debe tener 4 dígitos.").regex(/^\d{4}$/, "El PIN debe contener solo números."),
   roleId: z.string().min(1, "El rol es requerido."),
 });
 
+/** @description Array of available permissions. */
 const PERMISSIONS = [
     { id: 'caja', label: 'Caja' },
     { id: 'kitchen', label: 'Cocina' },
@@ -59,6 +61,7 @@ const PERMISSIONS = [
     { id: 'admin', label: 'Admin' },
 ];
 
+/** @description Zod schema for role validation. */
 const roleSchema = z.object({
   name: z.string().min(1, { message: "El nombre es requerido." }),
   permissions: z.array(z.string()).refine((value) => value.some((item) => item), {
@@ -66,8 +69,11 @@ const roleSchema = z.object({
   }),
 });
 
+/** @description Zod schema for order type validation. */
 const orderTypeSchema = z.object({ name: z.string().min(1, "El nombre es requerido.") });
+/** @description Zod schema for payment method validation. */
 const paymentMethodSchema = z.object({ name: z.string().min(1, "El nombre es requerido."), isPlatformPayment: z.boolean() });
+/** @description Zod schema for delivery platform validation. */
 const deliveryPlatformSchema = z.object({ name: z.string().min(1, "El nombre es requerido."), requiresPlatformPayment: z.boolean() });
 
 type DeletableItem = 
@@ -77,6 +83,11 @@ type DeletableItem =
   | { type: 'paymentMethod'; item: PaymentMethod }
   | { type: 'deliveryPlatform'; item: DeliveryPlatform };
 
+/**
+ * @page AdminPage
+ * @description The main administration page for managing users, roles, and system settings.
+ * It provides a tabbed interface for different management sections and uses dialogs for creating and editing items.
+ */
 export default function AdminPage() {
   const context = useAppContext();
   const { toast } = useToast();

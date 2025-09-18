@@ -1,5 +1,10 @@
 import { cn } from "@/lib/utils"
 
+/**
+ * @component Skeleton
+ * @description A placeholder component to display while content is loading.
+ * @param {React.HTMLAttributes<HTMLDivElement>} props - Props for the component.
+ */
 function Skeleton({
   className,
   ...props

@@ -6,6 +6,17 @@ import { Check } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * @component
+ * @description A control that allows the user to toggle between checked and not checked.
+ * Based on the shadcn/ui Checkbox component.
+ *
+ * @param {React.Ref<React.ElementRef<typeof CheckboxPrimitive.Root>>} ref - A ref to the underlying DOM element.
+ * @param {React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>} props - Props for the component.
+ * @example
+ * <Checkbox id="terms" />
+ * <label htmlFor="terms">Accept terms and conditions</label>
+ */
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>

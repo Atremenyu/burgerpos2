@@ -7,14 +7,22 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/** @description The root component for the sheet. */
 const Sheet = SheetPrimitive.Root
 
+/** @description The button that triggers the sheet to open. */
 const SheetTrigger = SheetPrimitive.Trigger
 
+/** @description A button that closes the sheet. */
 const SheetClose = SheetPrimitive.Close
 
+/** @description Portals the sheet content to the end of the document body. */
 const SheetPortal = SheetPrimitive.Portal
 
+/**
+ * @component SheetOverlay
+ * @description A semi-transparent overlay that appears behind the sheet content.
+ */
 const SheetOverlay = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
@@ -49,10 +57,20 @@ const sheetVariants = cva(
   }
 )
 
+/**
+ * @typedef {object} SheetContentProps
+ * @extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>
+ * @extends VariantProps<typeof sheetVariants>
+ * @property {'top' | 'bottom' | 'left' | 'right'} [side='right'] - The side of the screen from which the sheet will appear.
+ */
 interface SheetContentProps
   extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
     VariantProps<typeof sheetVariants> {}
 
+/**
+ * @component SheetContent
+ * @description The main content of the sheet.
+ */
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps
@@ -74,6 +92,10 @@ const SheetContent = React.forwardRef<
 ))
 SheetContent.displayName = SheetPrimitive.Content.displayName
 
+/**
+ * @component SheetHeader
+ * @description A container for the sheet's title and description.
+ */
 const SheetHeader = ({
   className,
   ...props
@@ -88,6 +110,10 @@ const SheetHeader = ({
 )
 SheetHeader.displayName = "SheetHeader"
 
+/**
+ * @component SheetFooter
+ * @description A container for the sheet's action buttons.
+ */
 const SheetFooter = ({
   className,
   ...props
@@ -102,6 +128,10 @@ const SheetFooter = ({
 )
 SheetFooter.displayName = "SheetFooter"
 
+/**
+ * @component SheetTitle
+ * @description The title of the sheet.
+ */
 const SheetTitle = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Title>
@@ -114,6 +144,10 @@ const SheetTitle = React.forwardRef<
 ))
 SheetTitle.displayName = SheetPrimitive.Title.displayName
 
+/**
+ * @component SheetDescription
+ * @description The description of the sheet.
+ */
 const SheetDescription = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Description>

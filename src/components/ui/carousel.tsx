@@ -9,11 +9,24 @@ import { ArrowLeft, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
+/**
+ * @file This file defines a carousel component using embla-carousel-react.
+ * It provides a flexible and accessible carousel with customizable options and controls.
+ * @see https://www.embla-carousel.com/
+ */
+
 type CarouselApi = UseEmblaCarouselType[1]
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
 type CarouselOptions = UseCarouselParameters[0]
 type CarouselPlugin = UseCarouselParameters[1]
 
+/**
+ * @typedef {object} CarouselProps
+ * @property {CarouselOptions} [opts] - Options for the embla-carousel instance.
+ * @property {CarouselPlugin} [plugins] - Plugins for the embla-carousel instance.
+ * @property {'horizontal' | 'vertical'} [orientation='horizontal'] - The orientation of the carousel.
+ * @property {(api: CarouselApi) => void} [setApi] - A callback to get the embla-carousel API.
+ */
 type CarouselProps = {
   opts?: CarouselOptions
   plugins?: CarouselPlugin
@@ -32,6 +45,11 @@ type CarouselContextProps = {
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null)
 
+/**
+ * A custom hook to access the carousel's context.
+ * @throws {Error} If used outside of a `<Carousel />` component.
+ * @returns {CarouselContextProps} The context of the carousel.
+ */
 function useCarousel() {
   const context = React.useContext(CarouselContext)
 
@@ -42,6 +60,12 @@ function useCarousel() {
   return context
 }
 
+/**
+ * @component
+ * @description The main container for the carousel. It initializes the embla-carousel instance and provides context to its children.
+ * @param {React.Ref<HTMLDivElement>} ref - A ref to the underlying DOM element.
+ * @param {React.HTMLAttributes<HTMLDivElement> & CarouselProps} props - Props for the component.
+ */
 const Carousel = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & CarouselProps
@@ -150,6 +174,11 @@ const Carousel = React.forwardRef<
 )
 Carousel.displayName = "Carousel"
 
+/**
+ * @component
+ * @description The container for the carousel items.
+ * @param {React.Ref<HTMLDivElement>} ref - A ref to the underlying DOM element.
+ */
 const CarouselContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -172,6 +201,11 @@ const CarouselContent = React.forwardRef<
 })
 CarouselContent.displayName = "CarouselContent"
 
+/**
+ * @component
+ * @description A single item within the carousel.
+ * @param {React.Ref<HTMLDivElement>} ref - A ref to the underlying DOM element.
+ */
 const CarouselItem = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -194,6 +228,11 @@ const CarouselItem = React.forwardRef<
 })
 CarouselItem.displayName = "CarouselItem"
 
+/**
+ * @component
+ * @description A button to scroll to the previous item in the carousel.
+ * @param {React.Ref<HTMLButtonElement>} ref - A ref to the underlying DOM element.
+ */
 const CarouselPrevious = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<typeof Button>
@@ -223,6 +262,11 @@ const CarouselPrevious = React.forwardRef<
 })
 CarouselPrevious.displayName = "CarouselPrevious"
 
+/**
+ * @component
+ * @description A button to scroll to the next item in the carousel.
+ * @param {React.Ref<HTMLButtonElement>} ref - A ref to the underlying DOM element.
+ */
 const CarouselNext = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<typeof Button>

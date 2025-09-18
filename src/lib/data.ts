@@ -1,11 +1,21 @@
 import type { Product, Ingredient, Category, User, Role, OrderType, PaymentMethod, DeliveryPlatform } from '@/types';
 
+/**
+ * @name categories
+ * @description Mock data for product categories.
+ * @type {Category[]}
+ */
 export const categories: Category[] = [
   { id: 'cat1', name: 'Hamburguesas' },
   { id: 'cat2', name: 'Acompañamientos' },
   { id: 'cat3', name: 'Bebidas' },
 ];
 
+/**
+ * @name ingredients
+ * @description Mock data for raw ingredients.
+ * @type {Ingredient[]}
+ */
 export const ingredients: Ingredient[] = [
   { id: 'ing1', name: 'Carne de Hamburguesa', stock: 100, unit: 'pcs' },
   { id: 'ing2', name: 'Pan de Hamburguesa', stock: 150, unit: 'pcs' },
@@ -17,6 +27,11 @@ export const ingredients: Ingredient[] = [
   { id: 'ing8', name: 'Salsa Especial', stock: 2000, unit: 'ml' },
 ];
 
+/**
+ * @name products
+ * @description Mock data for menu products.
+ * @type {Product[]}
+ */
 export const products: Product[] = [
   {
     id: 'prod1',
@@ -54,21 +69,41 @@ export const products: Product[] = [
   },
 ];
 
+/**
+ * @name roles
+ * @description Mock data for user roles and permissions.
+ * @type {Role[]}
+ */
 export const roles: Role[] = [
     { id: 'role1', name: 'Administrador', permissions: ['caja', 'kitchen', 'inventory', 'reports', 'admin'] },
     { id: 'role2', name: 'Cajero', permissions: ['caja'] },
     { id: 'role3', name: 'Cocinero', permissions: ['kitchen'] },
 ];
 
+/**
+ * @name users
+ * @description Mock data for users.
+ * @type {User[]}
+ */
 export const users: User[] = [
   { id: 'user1', name: 'Admin', pin: '1234', roleId: 'role1' },
 ];
 
+/**
+ * @name orderTypes
+ * @description Mock data for different types of orders.
+ * @type {OrderType[]}
+ */
 export const orderTypes: OrderType[] = [
     { id: 'ot1', name: 'Comedor' },
     { id: 'ot2', name: 'Para Llevar' },
 ];
 
+/**
+ * @name paymentMethods
+ * @description Mock data for accepted payment methods.
+ * @type {PaymentMethod[]}
+ */
 export const paymentMethods: PaymentMethod[] = [
     { id: 'pm1', name: 'Tarjeta', isPlatformPayment: false },
     { id: 'pm2', name: 'Efectivo', isPlatformPayment: false },
@@ -76,6 +111,11 @@ export const paymentMethods: PaymentMethod[] = [
     { id: 'pm4', name: 'Pago de Plataforma', isPlatformPayment: true },
 ];
 
+/**
+ * @name deliveryPlatforms
+ * @description Mock data for delivery platforms.
+ * @type {DeliveryPlatform[]}
+ */
 export const deliveryPlatforms: DeliveryPlatform[] = [
     { id: 'dp1', name: 'Uber', requiresPlatformPayment: true },
     { id: 'dp2', name: 'Didi', requiresPlatformPayment: true },

@@ -17,6 +17,12 @@ import { cn } from "@/lib/utils";
 import { useAppContext } from "@/context/AppContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+/**
+ * @typedef {object} CartProps
+ * @property {CartItem[]} cart - The list of items currently in the cart.
+ * @property {(cartItemId: string, quantity: number) => void} onUpdateQuantity - Callback to update the quantity of a cart item.
+ * @property {() => void} onClearCart - Callback to clear all items from the cart.
+ */
 interface CartProps {
   cart: CartItem[];
   onUpdateQuantity: (cartItemId: string, quantity: number) => void;
@@ -34,18 +40,30 @@ const orderTypeIcons: Record<string, React.ElementType> = {
   'Para Llevar': Package,
 };
 
+/**
+ * @component Cart
+ * @description A component that displays the current cart, handles the payment process, and creates new orders.
+ * @param {CartProps} props - Props for the component.
+ */
 export default function Cart({ cart, onUpdateQuantity, onClearCart }: CartProps) {
   const { addOrder, customers, orderTypes, paymentMethods, deliveryPlatforms } = useAppContext();
+
+  // State for the payment modal
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [paymentStep, setPaymentStep] = React.useState(1);
+  const [paymentStep, setPaymentStep] = React.useState(1); // 1: Details, 2: Summary, 3: Confirmation
+
+  // State for order details
   const [paymentMethod, setPaymentMethod] = React.useState<string>(paymentMethods.find(p => !p.isPlatformPayment)?.name || '');
+  const [orderType, setOrderType] = React.useState<string>(orderTypes[0]?.name || '');
+  const [deliveryPlatform, setDeliveryPlatform] = React.useState<string | undefined>();
+  const [transactionId, setTransactionId] = React.useState("");
+
+  // State for customer details
   const [customerName, setCustomerName] = React.useState("");
   const [customerPhone, setCustomerPhone] = React.useState("");
   const [suggestions, setSuggestions] = React.useState<Customer[]>([]);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = React.useState(false);
-  const [orderType, setOrderType] = React.useState<string>(orderTypes[0]?.name || '');
-  const [deliveryPlatform, setDeliveryPlatform] = React.useState<string | undefined>();
-  const [transactionId, setTransactionId] = React.useState("");
+
 
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 

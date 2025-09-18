@@ -6,14 +6,34 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * @component
+ * @description The root component for the dialog.
+ */
 const Dialog = DialogPrimitive.Root
 
+/**
+ * @component
+ * @description The button that triggers the dialog to open.
+ */
 const DialogTrigger = DialogPrimitive.Trigger
 
+/**
+ * @component
+ * @description Portals the dialog content to the end of the document body.
+ */
 const DialogPortal = DialogPrimitive.Portal
 
+/**
+ * @component
+ * @description A button that closes the dialog.
+ */
 const DialogClose = DialogPrimitive.Close
 
+/**
+ * @component
+ * @description A semi-transparent overlay that appears behind the dialog content.
+ */
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
@@ -29,6 +49,10 @@ const DialogOverlay = React.forwardRef<
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
+/**
+ * @component
+ * @description The main content of the dialog.
+ */
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
@@ -53,6 +77,10 @@ const DialogContent = React.forwardRef<
 ))
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
+/**
+ * @component
+ * @description A container for the dialog's title and description.
+ */
 const DialogHeader = ({
   className,
   ...props
@@ -67,6 +95,10 @@ const DialogHeader = ({
 )
 DialogHeader.displayName = "DialogHeader"
 
+/**
+ * @component
+ * @description A container for the dialog's action buttons.
+ */
 const DialogFooter = ({
   className,
   ...props
@@ -81,6 +113,10 @@ const DialogFooter = ({
 )
 DialogFooter.displayName = "DialogFooter"
 
+/**
+ * @component
+ * @description The title of the dialog.
+ */
 const DialogTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
@@ -96,6 +132,10 @@ const DialogTitle = React.forwardRef<
 ))
 DialogTitle.displayName = DialogPrimitive.Title.displayName
 
+/**
+ * @component
+ * @description The description of the dialog.
+ */
 const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>

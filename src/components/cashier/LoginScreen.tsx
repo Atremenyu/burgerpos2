@@ -26,11 +26,21 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LogIn } from "lucide-react";
 
+/**
+ * @constant loginSchema
+ * @description The Zod schema for validating the login form.
+ * It requires a userId and a 4-digit PIN.
+ */
 const loginSchema = z.object({
   userId: z.string().min(1, "Debes seleccionar un usuario."),
   pin: z.string().length(4, "El PIN debe tener 4 dígitos."),
 });
 
+/**
+ * @component LoginScreen
+ * @description A component that provides a user interface for users to log in with their user ID and PIN.
+ * It handles form validation and authentication logic.
+ */
 export default function LoginScreen() {
   const { users, login } = useAppContext();
   const { toast } = useToast();

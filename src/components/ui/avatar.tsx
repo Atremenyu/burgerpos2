@@ -5,6 +5,17 @@ import * as AvatarPrimitive from "@radix-ui/react-avatar"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * @component
+ * @description An image element with a fallback for representing the user.
+ * Based on the shadcn/ui Avatar component.
+ *
+ * @example
+ * <Avatar>
+ *   <AvatarImage src="https://github.com/shadcn.png" />
+ *   <AvatarFallback>CN</AvatarFallback>
+ * </Avatar>
+ */
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
@@ -20,6 +31,12 @@ const Avatar = React.forwardRef<
 ))
 Avatar.displayName = AvatarPrimitive.Root.displayName
 
+/**
+ * @component
+ * @description The image to be displayed in the avatar.
+ * @param {React.Ref<React.ElementRef<typeof AvatarPrimitive.Image>>} ref - A ref to the underlying DOM element.
+ * @param {React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>} props - Props for the component.
+ */
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
@@ -32,6 +49,12 @@ const AvatarImage = React.forwardRef<
 ))
 AvatarImage.displayName = AvatarPrimitive.Image.displayName
 
+/**
+ * @component
+ * @description A fallback to be displayed if the avatar image is not available.
+ * @param {React.Ref<React.ElementRef<typeof AvatarPrimitive.Fallback>>} ref - A ref to the underlying DOM element.
+ * @param {React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>} props - Props for the component.
+ */
 const AvatarFallback = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Fallback>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>

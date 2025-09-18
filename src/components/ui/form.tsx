@@ -15,6 +15,11 @@ import {
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 
+/**
+ * @component
+ * @description The provider component that connects `react-hook-form` to the form components.
+ * It should wrap your entire form.
+ */
 const Form = FormProvider
 
 type FormFieldContextValue<
@@ -28,6 +33,11 @@ const FormFieldContext = React.createContext<FormFieldContextValue>(
   {} as FormFieldContextValue
 )
 
+/**
+ * @component
+ * @description A component that connects a form input to the form state.
+ * It wraps the `Controller` component from `react-hook-form`.
+ */
 const FormField = <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
@@ -41,6 +51,12 @@ const FormField = <
   )
 }
 
+/**
+ * @hook
+ * @description A custom hook to access form field state and context.
+ * Must be used within a `<FormField>` component.
+ * @returns {object} An object containing the field's state and generated IDs for accessibility.
+ */
 const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext)
   const itemContext = React.useContext(FormItemContext)
@@ -72,6 +88,10 @@ const FormItemContext = React.createContext<FormItemContextValue>(
   {} as FormItemContextValue
 )
 
+/**
+ * @component
+ * @description A container for a single form field, including its label, input, and any associated messages.
+ */
 const FormItem = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -86,6 +106,10 @@ const FormItem = React.forwardRef<
 })
 FormItem.displayName = "FormItem"
 
+/**
+ * @component
+ * @description The label for a form field. It is automatically associated with the form control.
+ */
 const FormLabel = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
@@ -103,6 +127,11 @@ const FormLabel = React.forwardRef<
 })
 FormLabel.displayName = "FormLabel"
 
+/**
+ * @component
+ * @description A wrapper for the form input component (e.g., `<Input />`, `<Select />`).
+ * It connects the input to the form field's state and accessibility attributes.
+ */
 const FormControl = React.forwardRef<
   React.ElementRef<typeof Slot>,
   React.ComponentPropsWithoutRef<typeof Slot>
@@ -125,6 +154,10 @@ const FormControl = React.forwardRef<
 })
 FormControl.displayName = "FormControl"
 
+/**
+ * @component
+ * @description A component to provide additional information about a form field.
+ */
 const FormDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
@@ -142,6 +175,10 @@ const FormDescription = React.forwardRef<
 })
 FormDescription.displayName = "FormDescription"
 
+/**
+ * @component
+ * @description A component to display validation error messages for a form field.
+ */
 const FormMessage = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>

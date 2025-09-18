@@ -3,6 +3,20 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * @component
+ * @description Displays a callout for user attention.
+ * Based on the shadcn/ui Alert component.
+ *
+ * @example
+ * <Alert>
+ *   <AlertTitle>Heads up!</AlertTitle>
+ *   <AlertDescription>
+ *     You can add components to your app using the cli.
+ *   </AlertDescription>
+ * </Alert>
+ */
+
 const alertVariants = cva(
   "relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
   {
@@ -19,6 +33,13 @@ const alertVariants = cva(
   }
 )
 
+/**
+ * @component
+ * @description The main container for the alert message.
+ * @param {React.Ref<HTMLDivElement>} ref - A ref to the underlying DOM element.
+ * @param {React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>} props - Props for the component.
+ * @param {'default' | 'destructive'} [props.variant='default'] - The variant of the alert.
+ */
 const Alert = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
@@ -32,6 +53,12 @@ const Alert = React.forwardRef<
 ))
 Alert.displayName = "Alert"
 
+/**
+ * @component
+ * @description The title of the alert. Should be used as a heading for the alert content.
+ * @param {React.Ref<HTMLParagraphElement>} ref - A ref to the underlying DOM element.
+ * @param {React.HTMLAttributes<HTMLHeadingElement>} props - Props for the component.
+ */
 const AlertTitle = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLHeadingElement>
@@ -44,6 +71,12 @@ const AlertTitle = React.forwardRef<
 ))
 AlertTitle.displayName = "AlertTitle"
 
+/**
+ * @component
+ * @description The main description content of the alert.
+ * @param {React.Ref<HTMLParagraphElement>} ref - A ref to the underlying DOM element.
+ * @param {React.HTMLAttributes<HTMLParagraphElement>} props - Props for the component.
+ */
 const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>

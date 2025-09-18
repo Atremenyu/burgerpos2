@@ -8,6 +8,16 @@ import { cn } from "@/lib/utils"
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
 
+/**
+ * @typedef {object} ChartConfig
+ * @description Configuration for the chart's data series.
+ * Each key represents a data series, and the value contains its display properties.
+ *
+ * @property {React.ReactNode} [label] - The display name for the data series.
+ * @property {React.ComponentType} [icon] - An icon component for the data series.
+ * @property {string} [color] - A static color for the data series.
+ * @property {Record<keyof typeof THEMES, string>} [theme] - Theme-specific colors for the data series.
+ */
 export type ChartConfig = {
   [k in string]: {
     label?: React.ReactNode
@@ -34,6 +44,15 @@ function useChart() {
   return context
 }
 
+/**
+ * @component
+ * @description The main container for a chart. It sets up the context and responsive container for `recharts`.
+ *
+ * @param {React.Ref<HTMLDivElement>} ref - A ref to the underlying DOM element.
+ * @param {object} props - Props for the component.
+ * @param {ChartConfig} props.config - The configuration for the chart's data series.
+ * @param {React.ReactNode} props.children - The `recharts` components to render inside the container.
+ */
 const ChartContainer = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
@@ -102,6 +121,16 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
+/**
+ * @component
+ * @description A custom tooltip content component for charts.
+ *
+ * @param {React.Ref<HTMLDivElement>} ref - A ref to the underlying DOM element.
+ * @param {object} props - Props for the component, including props from `recharts` Tooltip.
+ * @param {boolean} [props.hideLabel=false] - Whether to hide the tooltip label.
+ * @param {boolean} [props.hideIndicator=false] - Whether to hide the color indicator for each item.
+ * @param {'line' | 'dot' | 'dashed'} [props.indicator='dot'] - The style of the color indicator.
+ */
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
@@ -258,6 +287,14 @@ ChartTooltipContent.displayName = "ChartTooltip"
 
 const ChartLegend = RechartsPrimitive.Legend
 
+/**
+ * @component
+ * @description A custom legend content component for charts.
+ *
+ * @param {React.Ref<HTMLDivElement>} ref - A ref to the underlying DOM element.
+ * @param {object} props - Props for the component.
+ * @param {boolean} [props.hideIcon=false] - Whether to hide the icon for each legend item.
+ */
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> &

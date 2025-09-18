@@ -2,6 +2,12 @@ import * as React from 'react';
 
 import {cn} from '@/lib/utils';
 
+/**
+ * @component Textarea
+ * @description A multi-line text input field.
+ * @param {React.Ref<HTMLTextAreaElement>} ref - A ref to the underlying DOM element.
+ * @param {React.ComponentProps<'textarea'>} props - Props for the component.
+ */
 const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<'textarea'>>(
   ({className, ...props}, ref) => {
     return (

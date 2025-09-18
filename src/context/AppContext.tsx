@@ -7,6 +7,66 @@ import type { Product, Ingredient, Order, CartItem, Category, Expense, Customer,
 import { products as initialProducts, ingredients as initialIngredients, categories as initialCategories, users as initialUsers, roles as initialRoles, orderTypes as initialOrderTypes, paymentMethods as initialPaymentMethods, deliveryPlatforms as initialDeliveryPlatforms } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 
+/**
+ * @typedef {object} AppContextType
+ * @description The shape of the application's global context, including all state and action dispatchers.
+ *
+ * @property {Product[]} products - State for all menu products.
+ * @property {Ingredient[]} ingredients - State for all raw ingredients.
+ * @property {Category[]} categories - State for all product categories.
+ * @property {Order[]} orders - State for all historical and current orders.
+ * @property {Expense[]} expenses - State for all recorded expenses.
+ * @property {Customer[]} customers - Memoized list of unique customers derived from orders.
+ * @property {User[]} users - State for all registered users.
+ * @property {Role[]} roles - State for all user roles and permissions.
+ * @property {Shift[]} shifts - State for all completed shifts.
+ * @property {OrderType[]} orderTypes - State for configurable order types.
+ * @property {PaymentMethod[]} paymentMethods - State for configurable payment methods.
+ * @property {DeliveryPlatform[]} deliveryPlatforms - State for configurable delivery platforms.
+ * @property {CurrentUser | null} currentUser - The currently logged-in user, or null.
+ *
+ * @property {(product: Omit<Product, 'id' | 'ingredients'>) => void} addProduct - Function to add a new product.
+ * @property {(product: Product) => void} updateProduct - Function to update an existing product.
+ * @property {(productId: string) => void} deleteProduct - Function to delete a product.
+ *
+ * @property {(ingredient: Omit<Ingredient, 'id'>) => void} addIngredient - Function to add a new ingredient.
+ * @property {(ingredient: Ingredient) => void} updateIngredient - Function to update an existing ingredient.
+ * @property {(ingredientId: string) => void} deleteIngredient - Function to delete an ingredient.
+ *
+ * @property {(category: Omit<Category, 'id'>) => void} addCategory - Function to add a new category.
+ * @property {(category: Category) => void} updateCategory - Function to update an existing category.
+ * @property {(categoryId: string) => void} deleteCategory - Function to delete a category.
+ *
+ * @property {(cart: CartItem[], total: number, paymentMethod: string, orderType: string, deliveryPlatform?: string, customerName?: string, customerPhone?: string, transactionId?: string) => void} addOrder - Function to create a new order.
+ * @property {(orderId: string, status: Order['status'], prepTime?: number) => void} updateOrderStatus - Function to update the status of an order.
+ *
+ * @property {(expense: Omit<Expense, 'id' | 'timestamp'>) => void} addExpense - Function to add a new expense.
+ * @property {(expenseId: string) => void} deleteExpense - Function to delete an expense.
+ *
+ * @property {(user: Omit<User, 'id'>) => void} addUser - Function to add a new user.
+ * @property {(user: User) => void} updateUser - Function to update an existing user.
+ * @property {(userId: string) => boolean} deleteUser - Function to delete a user.
+ *
+ * @property {(role: Omit<Role, 'id'>) => void} addRole - Function to add a new role.
+ * @property {(role: Role) => void} updateRole - Function to update an existing role.
+ * @property {(roleId: string) => boolean} deleteRole - Function to delete a role.
+ *
+ * @property {(item: Omit<OrderType, 'id'>) => void} addOrderType - Function to add a new order type.
+ * @property {(item: OrderType) => void} updateOrderType - Function to update an existing order type.
+ * @property {(id: string) => boolean} deleteOrderType - Function to delete an order type.
+ *
+ * @property {(item: Omit<PaymentMethod, 'id'>) => void} addPaymentMethod - Function to add a new payment method.
+ * @property {(item: PaymentMethod) => void} updatePaymentMethod - Function to update an existing payment method.
+ * @property {(id: string) => boolean} deletePaymentMethod - Function to delete a payment method.
+ *
+ * @property {(item: Omit<DeliveryPlatform, 'id'>) => void} addDeliveryPlatform - Function to add a new delivery platform.
+ * @property {(item: DeliveryPlatform) => void} updateDeliveryPlatform - Function to update an existing delivery platform.
+ * @property {(id: string) => boolean} deleteDeliveryPlatform - Function to delete a delivery platform.
+ *
+ * @property {(userId: string, pin: string) => boolean} login - Function to authenticate a user and start a shift.
+ * @property {() => void} logout - Function to log out the current user and end their shift.
+ * @property {() => void} endDay - Function to end the day, logging out any active user.
+ */
 interface AppContextType {
   products: Product[];
   ingredients: Ingredient[];
@@ -67,6 +127,12 @@ interface AppContextType {
 
 const AppContext = React.createContext<AppContextType | undefined>(undefined);
 
+/**
+ * Provides the application's global state to all child components.
+ * It encapsulates all business logic and state management for the app.
+ * @param {object} props - The component props.
+ * @param {React.ReactNode} props.children - The child components to render.
+ */
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
   const router = useRouter();
@@ -336,18 +402,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [currentUser, logout]);
 
   const value = React.useMemo(() => ({
+    // State
     products, ingredients, categories, orders, expenses, customers, users, roles, shifts, currentUser,
     orderTypes, paymentMethods, deliveryPlatforms,
+    // Product Actions
     addProduct, updateProduct, deleteProduct, 
+    // Ingredient Actions
     addIngredient, updateIngredient, deleteIngredient, 
+    // Category Actions
     addCategory, updateCategory, deleteCategory,
+    // Order Actions
     addOrder, updateOrderStatus,
+    // Expense Actions
     addExpense, deleteExpense,
+    // User & Role Actions
     addUser, updateUser, deleteUser,
     addRole, updateRole, deleteRole,
+    // Settings Actions
     addOrderType, updateOrderType, deleteOrderType,
     addPaymentMethod, updatePaymentMethod, deletePaymentMethod,
     addDeliveryPlatform, updateDeliveryPlatform, deleteDeliveryPlatform,
+    // Auth & Shift Actions
     login, logout, endDay,
   }), [
     products, ingredients, categories, orders, expenses, customers, users, roles, shifts, currentUser,
@@ -368,6 +443,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
+/**
+ * A custom hook to easily access the application's global context.
+ * This must be used within a component that is a child of `AppProvider`.
+ * @returns {AppContextType} The global context object.
+ * @throws {Error} If used outside of an `AppProvider`.
+ */
 export function useAppContext() {
   const context = React.useContext(AppContext);
   if (context === undefined) {

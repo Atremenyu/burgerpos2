@@ -23,11 +23,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+/**
+ * @typedef {object} OrderCardProps
+ * @property {Order} order - The order to display.
+ * @property {(orderId: string, status: Order["status"], prepTime?: number) => void} onUpdateStatus - Callback to update the status of the order.
+ */
 interface OrderCardProps {
   order: Order;
   onUpdateStatus: (orderId: string, status: Order["status"], prepTime?: number) => void;
 }
 
+/**
+ * @constant statusStyles
+ * @description A configuration object for the styling of different order statuses.
+ */
 const statusStyles = {
   Pendiente: {
     badge: "bg-orange-500 text-white",
@@ -47,6 +56,11 @@ const statusStyles = {
   },
 };
 
+/**
+ * @component OrderCard
+ * @description A card component that displays a single order in the kitchen view, showing its details and status, and providing actions to update the status.
+ * @param {OrderCardProps} props - Props for the component.
+ */
 function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
   const [isAccepting, setIsAccepting] = React.useState(false);
   const [prepTime, setPrepTime] = React.useState('');

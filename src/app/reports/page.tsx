@@ -28,11 +28,20 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import LoginScreen from "@/components/cashier/LoginScreen";
 
+/** @description Zod schema for expense validation. */
 const expenseSchema = z.object({
   description: z.string().min(1, { message: "La descripción es requerida." }),
   amount: z.coerce.number().positive({ message: "El monto debe ser un número positivo." }),
 });
 
+/**
+ * @function calculateStats
+ * @description A helper function to calculate statistics for a given set of orders, products, and expenses.
+ * @param {Order[]} ordersToProcess - The orders to process.
+ * @param {Product[]} products - The list of all products.
+ * @param {Expense[]} expensesToProcess - The expenses to process.
+ * @returns {{ totalSales: number, orderCount: number, topProduct: { name: string, units: string }, totalExpenses: number }} The calculated statistics.
+ */
 const calculateStats = (ordersToProcess: Order[], products: Product[], expensesToProcess: Expense[]) => {
   const totalExpenses = expensesToProcess.reduce((total, expense) => total + expense.amount, 0);
   
@@ -77,6 +86,12 @@ type CustomerData = {
   orders: Order[];
 };
 
+/**
+ * @page ReportsPage
+ * @description The main reports and analytics page.
+ * It provides a tabbed interface to view various reports, including daily and monthly sales,
+ * top products, expenses, and customer data.
+ */
 export default function ReportsPage() {
   const { orders, products, expenses, addExpense, deleteExpense, shifts, currentUser, customers: allCustomers } = useAppContext();
   const { toast } = useToast();

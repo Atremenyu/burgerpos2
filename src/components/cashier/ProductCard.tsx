@@ -10,11 +10,21 @@ import type { Product } from "@/types";
 import { cn } from "@/lib/utils";
 import { PlusCircle } from "lucide-react";
 
+/**
+ * @typedef {object} ProductCardProps
+ * @property {Product} product - The product to display.
+ * @property {(product: Product, isCombo: boolean) => void} onAddToCart - Callback to add the product to the cart.
+ */
 interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product, isCombo: boolean) => void;
 }
 
+/**
+ * @component ProductCard
+ * @description A card component that displays a single product with its details and an "Add to Cart" button.
+ * @param {ProductCardProps} props - Props for the component.
+ */
 function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const isOutOfStock = product.stock === 0;
 
