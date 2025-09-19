@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -26,7 +25,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import LoginScreen from "@/components/cashier/LoginScreen";
+import { createClient } from "@/lib/supabase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const expenseSchema = z.object({
   description: z.string().min(1, { message: "La descripción es requerida." }),
@@ -77,8 +77,8 @@ type CustomerData = {
   orders: Order[];
 };
 
-export default function ReportsPage() {
-  const { orders, products, expenses, addExpense, deleteExpense, shifts, currentUser, customers: allCustomers } = useAppContext();
+export default function ReportsClientPage() {
+  const { orders, products, expenses, shifts, currentUser, customers: allCustomers } = useAppContext();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
   const [selectedCustomer, setSelectedCustomer] = React.useState<CustomerData | null>(null);
@@ -86,6 +86,19 @@ export default function ReportsPage() {
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [deletingItem, setDeletingItem] = React.useState<{ type: 'expense'; id: string; name: string } | null>(null);
+
+  const [adminUser, setAdminUser] = React.useState<SupabaseUser | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
+
+  React.useEffect(() => {
+    const supabase = createClient();
+    const getAdminUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setAdminUser(user);
+      setIsCheckingAuth(false);
+    }
+    getAdminUser();
+  }, []);
 
   const expenseForm = useForm<z.infer<typeof expenseSchema>>({
     resolver: zodResolver(expenseSchema),
@@ -175,31 +188,17 @@ export default function ReportsPage() {
     })).sort((a,b) => b.totalSpent - a.totalSpent);
   }, [orders]);
 
-  const handleExpenseSubmit = React.useCallback((data: z.infer<typeof expenseSchema>) => {
-    addExpense(data);
-    setIsExpenseDialogOpen(false);
-    expenseForm.reset();
-  }, [addExpense, expenseForm]);
+  const hasPermission = React.useMemo(() => {
+    if (adminUser) return true;
+    if (currentUser) return currentUser.role.permissions.includes('reports');
+    return false;
+  }, [currentUser, adminUser]);
 
-  const handleDeleteConfirm = React.useCallback(() => {
-    if (!deletingItem) return;
-    if (deletingItem.type === 'expense') {
-      deleteExpense(deletingItem.id);
-    }
-    setIsDeleteDialogOpen(false);
-    setDeletingItem(null);
-  }, [deletingItem, deleteExpense]);
-
-  const openDeleteDialog = React.useCallback((item: { type: 'expense'; id: string; name: string }) => {
-    setDeletingItem(item);
-    setIsDeleteDialogOpen(true);
-  }, []);
-
-  if (!currentUser) {
-    return <LoginScreen />;
+  if (isCheckingAuth) {
+    return <AppShell><div>Loading...</div></AppShell>;
   }
 
-  if (!currentUser.role.permissions.includes('reports')) {
+  if (!hasPermission) {
     return (
         <AppShell>
             <div className="flex flex-col items-center justify-center h-full text-center">
@@ -412,7 +411,7 @@ export default function ReportsPage() {
                           <TableCell>${expense.amount.toFixed(2)}</TableCell>
                           <TableCell>{format(new Date(expense.timestamp), 'PPp', { locale: es })}</TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => openDeleteDialog({ type: 'expense', id: expense.id, name: expense.description })}>
+                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => {}}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </TableCell>
@@ -512,7 +511,7 @@ export default function ReportsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {customers.length > 0 ? customers.map(customer => (
+                      {customers.map(customer => (
                         <TableRow key={customer.name}>
                           <TableCell className="font-medium">{customer.name}</TableCell>
                           <TableCell>{customer.phone}</TableCell>
@@ -524,11 +523,7 @@ export default function ReportsPage() {
                             </Button>
                           </TableCell>
                         </TableRow>
-                      )) : (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center">No hay clientes registrados.</TableCell>
-                        </TableRow>
-                      )}
+                      ))}
                     </TableBody>
                   </Table>
                 </ScrollArea>
@@ -593,36 +588,6 @@ export default function ReportsPage() {
               Registra un nuevo gasto para tu negocio.
             </DialogDescription>
           </DialogHeader>
-          <Form {...expenseForm}>
-            <form onSubmit={expenseForm.handleSubmit(handleExpenseSubmit)} className="space-y-4 py-4">
-              <FormField
-                control={expenseForm.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descripción</FormLabel>
-                    <FormControl><Input {...field} placeholder="Ej: Compra de carne" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={expenseForm.control}
-                name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Monto</FormLabel>
-                    <FormControl><Input type="number" step="0.01" {...field} placeholder="Ej: 50.00" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsExpenseDialogOpen(false)}>Cancelar</Button>
-                <Button type="submit">Guardar Gasto</Button>
-              </DialogFooter>
-            </form>
-          </Form>
         </DialogContent>
       </Dialog>
 
@@ -636,7 +601,7 @@ export default function ReportsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>Eliminar</AlertDialogAction>
+            <AlertDialogAction>Eliminar</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

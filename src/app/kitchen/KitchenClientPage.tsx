@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -8,21 +7,44 @@ import type { Order } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAppContext } from "@/context/AppContext";
-import LoginScreen from "@/components/cashier/LoginScreen";
+import { createClient } from "@/lib/supabase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
-export default function KitchenPage() {
-  const { orders, updateOrderStatus, currentUser } = useAppContext();
+export default function KitchenClientPage() {
+  const { orders, currentUser } = useAppContext();
+  // NOTE: The onUpdateStatus prop for OrderCard needs to be connected to a server action
+  // For now, it will not persist changes.
+  const updateOrderStatus = () => {};
+
+  const [adminUser, setAdminUser] = React.useState<SupabaseUser | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
+
+  React.useEffect(() => {
+    const supabase = createClient();
+    const getAdminUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setAdminUser(user);
+      setIsCheckingAuth(false);
+    }
+    getAdminUser();
+  }, []);
 
   const pendingOrders = orders.filter(o => o.status === 'Pendiente');
   const preparingOrders = orders.filter(o => o.status === 'Preparando');
   const readyOrders = orders.filter(o => o.status === 'Listo');
   const deliveredOrders = orders.filter(o => o.status === 'Entregado');
 
-  if (!currentUser) {
-    return <LoginScreen />;
+  const hasPermission = React.useMemo(() => {
+    if (adminUser) return true;
+    if (currentUser) return currentUser.role.permissions.includes('kitchen');
+    return false;
+  }, [currentUser, adminUser]);
+
+  if (isCheckingAuth) {
+    return <AppShell><div>Loading...</div></AppShell>;
   }
 
-  if (!currentUser.role.permissions.includes('kitchen')) {
+  if (!hasPermission) {
     return (
         <AppShell>
             <div className="flex flex-col items-center justify-center h-full text-center">

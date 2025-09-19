@@ -43,6 +43,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import type { User, Role } from "@/types";
 import { addUserAction, updateUserAction, deleteUserAction, addRoleAction, updateRoleAction, deleteRoleAction } from "./actions";
+import { createClient } from "@/lib/supabase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const userSchema = z.object({
   name: z.string().min(1, "El nombre es requerido."),
@@ -70,9 +72,21 @@ type DeletableItem =
   | { type: 'role'; item: Role };
 
 export default function AdminClientPage() {
-  const { users, roles } = useAppContext();
+  const { users, roles, currentUser } = useAppContext();
   const { toast } = useToast();
   const router = useRouter();
+  const [adminUser, setAdminUser] = React.useState<SupabaseUser | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
+
+  React.useEffect(() => {
+    const supabase = createClient();
+    const getAdminUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setAdminUser(user);
+      setIsCheckingAuth(false);
+    }
+    getAdminUser();
+  }, []);
 
   const [isUserDialogOpen, setIsUserDialogOpen] = React.useState(false);
   const [editingUser, setEditingUser] = React.useState<User | null>(null);
@@ -139,7 +153,6 @@ export default function AdminClientPage() {
     setIsSubmitting(true);
     try {
       if (itemToDelete.type === 'user') {
-        // Optional: Add check if user is in use in a shift before deleting
         await deleteUserAction(itemToDelete.item.id);
       } else if (itemToDelete.type === 'role') {
         const isRoleInUse = users.some(u => u.roleId === itemToDelete.item.id);
@@ -163,6 +176,27 @@ export default function AdminClientPage() {
     setItemToDelete(item);
     setIsDeleteDialogOpen(true);
   };
+
+  const hasPermission = React.useMemo(() => {
+    if (adminUser) return true; // Admin always has access
+    if (currentUser) return currentUser.role.permissions.includes('admin'); // Employee needs specific permission
+    return false;
+  }, [currentUser, adminUser]);
+
+  if (isCheckingAuth) {
+    return <AppShell><div>Loading...</div></AppShell>; // Or a proper skeleton loader
+  }
+
+  if (!hasPermission) {
+    return (
+      <AppShell>
+        <div className="flex flex-col items-center justify-center h-full text-center">
+            <h1 className="text-2xl font-bold">Acceso Denegado</h1>
+            <p className="text-muted-foreground">No tienes permiso para acceder a esta sección.</p>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
