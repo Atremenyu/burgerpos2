@@ -4,6 +4,10 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AppProvider } from '@/context/AppContext';
+import {
+  getCategories, getProducts, getIngredients, getUsers, getRoles,
+  getOrderTypes, getPaymentMethods, getDeliveryPlatforms
+} from "@/lib/database";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -12,11 +16,31 @@ export const metadata: Metadata = {
   description: 'Un sistema POS para hamburguesería',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  const [
+    categories, products, ingredients, users, roles,
+    orderTypes, paymentMethods, deliveryPlatforms
+  ] = await Promise.all([
+    getCategories(),
+    getProducts(),
+    getIngredients(),
+    getUsers(),
+    getRoles(),
+    getOrderTypes(),
+    getPaymentMethods(),
+    getDeliveryPlatforms()
+  ]);
+
+  const initialData = {
+    categories, products, ingredients, users, roles,
+    orderTypes, paymentMethods, deliveryPlatforms
+  };
+
   return (
     <html lang="es" suppressHydrationWarning>
        <head>
@@ -31,7 +55,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppProvider>
+          <AppProvider initialData={initialData}>
             {children}
             <Toaster />
           </AppProvider>

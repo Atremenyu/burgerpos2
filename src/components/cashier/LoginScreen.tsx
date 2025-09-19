@@ -32,7 +32,7 @@ const loginSchema = z.object({
 });
 
 export default function LoginScreen() {
-  const { users, login } = useAppContext();
+  const { users, startShift } = useAppContext();
   const { toast } = useToast();
   const {
     control,
@@ -44,21 +44,23 @@ export default function LoginScreen() {
   });
 
   const handleLogin = (data: z.infer<typeof loginSchema>) => {
-    const success = login(data.userId, data.pin);
-    if (!success) {
+    const selectedUser = users.find(u => u.id === data.userId);
+    if (selectedUser && selectedUser.pin === data.pin) {
+      startShift(selectedUser);
+    } else {
       toast({
-        title: "Error de inicio de sesión",
-        description: "El PIN o el usuario es incorrecto. Por favor, inténtalo de nuevo.",
+        title: "Error",
+        description: "El PIN es incorrecto. Por favor, inténtalo de nuevo.",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-muted/40">
+    <div className="flex items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-sm shadow-2xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
+          <CardTitle className="text-2xl">Iniciar Turno</CardTitle>
           <CardDescription>
             Selecciona tu usuario e ingresa tu PIN para comenzar.
           </CardDescription>
@@ -108,7 +110,7 @@ export default function LoginScreen() {
           <CardFooter>
             <Button type="submit" className="w-full">
               <LogIn className="mr-2 h-4 w-4" />
-              Iniciar Sesión
+              Iniciar Turno
             </Button>
           </CardFooter>
         </form>
