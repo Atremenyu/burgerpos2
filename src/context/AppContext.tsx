@@ -4,7 +4,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import type { Product, Ingredient, Order, CartItem, Category, Expense, Customer, User, Shift, Role, CurrentUser, OrderType, PaymentMethod, DeliveryPlatform } from "@/types";
-import { products as initialProducts, ingredients as initialIngredients, categories as initialCategories, users as initialUsers, roles as initialRoles, orderTypes as initialOrderTypes, paymentMethods as initialPaymentMethods, deliveryPlatforms as initialDeliveryPlatforms } from "@/lib/data";
+import { getCategories, getProducts, getIngredients, getUsers, getRoles, getOrderTypes, getPaymentMethods, getDeliveryPlatforms } from "@/lib/database";
 import { useToast } from "@/hooks/use-toast";
 
 interface AppContextType {
@@ -70,17 +70,31 @@ const AppContext = React.createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
   const router = useRouter();
-  const [products, setProducts] = React.useState<Product[]>(initialProducts);
-  const [ingredients, setIngredients] = React.useState<Ingredient[]>(initialIngredients);
-  const [categories, setCategories] = React.useState<Category[]>(initialCategories);
+  const [products, setProducts] = React.useState<Product[]>([]);
+  const [ingredients, setIngredients] = React.useState<Ingredient[]>([]);
+  const [categories, setCategories] = React.useState<Category[]>([]);
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
-  const [users, setUsers] = React.useState<User[]>(initialUsers);
-  const [roles, setRoles] = React.useState<Role[]>(initialRoles);
+  const [users, setUsers] = React.useState<User[]>([]);
+  const [roles, setRoles] = React.useState<Role[]>([]);
   const [shifts, setShifts] = React.useState<Shift[]>([]);
-  const [orderTypes, setOrderTypes] = React.useState<OrderType[]>(initialOrderTypes);
-  const [paymentMethods, setPaymentMethods] = React.useState<PaymentMethod[]>(initialPaymentMethods);
-  const [deliveryPlatforms, setDeliveryPlatforms] = React.useState<DeliveryPlatform[]>(initialDeliveryPlatforms);
+  const [orderTypes, setOrderTypes] = React.useState<OrderType[]>([]);
+  const [paymentMethods, setPaymentMethods] = React.useState<PaymentMethod[]>([]);
+  const [deliveryPlatforms, setDeliveryPlatforms] = React.useState<DeliveryPlatform[]>([]);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      setCategories(await getCategories());
+      setProducts(await getProducts());
+      setIngredients(await getIngredients());
+      setUsers(await getUsers());
+      setRoles(await getRoles());
+      setOrderTypes(await getOrderTypes());
+      setPaymentMethods(await getPaymentMethods());
+      setDeliveryPlatforms(await getDeliveryPlatforms());
+    };
+    fetchData();
+  }, []);
   const [currentUser, setCurrentUser] = React.useState<CurrentUser | null>(null);
   const [activeShift, setActiveShift] = React.useState<Shift | null>(null);
 
