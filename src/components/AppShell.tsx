@@ -1,8 +1,7 @@
-
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -21,6 +20,8 @@ import {
 import { useTheme } from "next-themes";
 import * as React from 'react';
 import { useAppContext } from "@/context/AppContext";
+import { createClient } from "@/lib/supabase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const allNavLinks = [
   { href: "/", label: "Caja", icon: ShoppingCart, permission: 'caja' },
@@ -32,13 +33,36 @@ const allNavLinks = [
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const { currentUser, logout } = useAppContext();
+  const { currentUser, logout: contextLogout } = useAppContext();
+  const [adminUser, setAdminUser] = React.useState<SupabaseUser | null>(null);
+
+  const supabase = createClient();
+
+  React.useEffect(() => {
+    const getAdminUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setAdminUser(user);
+    }
+    getAdminUser();
+  }, [supabase.auth]);
 
   const navLinks = React.useMemo(() => {
-    if (!currentUser) return [];
-    return allNavLinks.filter(link => currentUser.role.permissions.includes(link.permission));
-  }, [currentUser]);
+    if (adminUser) { // If an admin is logged in, show all links
+      return allNavLinks;
+    }
+    if (currentUser) { // If an employee is on shift, show their permitted links
+      return allNavLinks.filter(link => currentUser.role.permissions.includes(link.permission));
+    }
+    return []; // Otherwise, show no links
+  }, [currentUser, adminUser]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    contextLogout(); // Clears employee shift state
+    router.refresh();
+  };
 
   const NavContent = () => (
     <nav className="flex flex-col md:flex-row items-center gap-4 text-sm font-medium">
@@ -60,6 +84,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     </nav>
   );
 
+  const hasActiveSession = adminUser || currentUser;
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="sticky top-0 z-50 w-full border-b bg-card/80 dark:bg-gray-800/80 backdrop-blur-sm">
@@ -69,16 +95,23 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <span className="font-bold text-lg">OrderFlow</span>
           </Link>
           <div className="hidden md:flex items-center gap-4">
-             {currentUser && <NavContent />}
+             {hasActiveSession && <NavContent />}
              <div className="flex items-center gap-4">
-              {currentUser && (
+              {currentUser ? ( // Employee is on shift
                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                   <UserCircle className="h-5 w-5 text-primary"/>
                   <span>{currentUser.name} ({currentUser.role.name})</span>
-                  <Button variant="ghost" size="icon" onClick={logout} className="h-8 w-8">
-                    <LogOut className="h-4 w-4 text-destructive" />
-                  </Button>
                 </div>
+              ) : adminUser && ( // Admin is logged in, no employee shift
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <Lock className="h-5 w-5 text-primary"/>
+                  <span>Admin: {adminUser.email}</span>
+                </div>
+              )}
+               {hasActiveSession && (
+                <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8">
+                  <LogOut className="h-4 w-4 text-destructive" />
+                </Button>
               )}
               <Button
                 variant="ghost"
@@ -92,7 +125,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="md:hidden">
-             {currentUser && (
+             {hasActiveSession && (
                 <Sheet>
                   <SheetTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -103,17 +136,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   <SheetContent side="right">
                     <div className="flex flex-col gap-4 p-4">
                       <NavContent />
-                       {currentUser && (
-                        <div className="flex items-center justify-between pt-4 border-t">
+                       <div className="flex items-center justify-between pt-4 border-t">
                           <div className="flex items-center gap-2 font-medium">
-                            <UserCircle className="h-5 w-5 text-primary"/>
-                            <span>{currentUser.name}</span>
+                            {currentUser ? (
+                                <><UserCircle className="h-5 w-5 text-primary"/><span>{currentUser.name}</span></>
+                            ) : adminUser && (
+                                <><Lock className="h-5 w-5 text-primary"/><span>Admin</span></>
+                            )}
                           </div>
-                          <Button variant="ghost" onClick={logout}>
+                          <Button variant="ghost" onClick={handleLogout}>
                             Cerrar Sesión <LogOut className="ml-2 h-4 w-4 text-destructive" />
                           </Button>
                         </div>
-                      )}
                        <div className="pt-4 border-t">
                          <Button
                           variant="ghost"
