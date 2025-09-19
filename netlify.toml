@@ -1,2 +1,7 @@
 [build]
   command = "next build"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "script-src 'self' 'unsafe-eval' 'unsafe-inline' https:;"

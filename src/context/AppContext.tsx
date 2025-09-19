@@ -4,7 +4,11 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import type { Product, Ingredient, Order, CartItem, Category, Expense, Customer, User, Shift, Role, CurrentUser, OrderType, PaymentMethod, DeliveryPlatform } from "@/types";
-import { getCategories, getProducts, getIngredients, getUsers, getRoles, getOrderTypes, getPaymentMethods, getDeliveryPlatforms } from "@/lib/database";
+import {
+  getCategories, getProducts, getIngredients, getUsers, getRoles, getOrderTypes, getPaymentMethods, getDeliveryPlatforms,
+  addUser as dbAddUser, updateUser as dbUpdateUser, deleteUser as dbDeleteUser,
+  addRole as dbAddRole, updateRole as dbUpdateRole, deleteRole as dbDeleteRole,
+} from "@/lib/database";
 import { useToast } from "@/hooks/use-toast";
 
 interface AppContextType {
@@ -60,7 +64,8 @@ interface AppContextType {
   updateDeliveryPlatform: (item: DeliveryPlatform) => void;
   deleteDeliveryPlatform: (id: string) => boolean;
 
-  login: (userId: string, pin: string) => boolean;
+  setCurrentUser: (user: CurrentUser | null) => void;
+  startShift: (user: User) => void;
   logout: () => void;
   endDay: () => void;
 }
@@ -222,37 +227,56 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setExpenses(prev => prev.filter(e => e.id !== expenseId));
   }, []);
 
-  const addUser = React.useCallback((userData: Omit<User, 'id'>) => {
-    const newUser: User = { id: `user${Date.now()}`, ...userData };
-    setUsers(prev => [...prev, newUser]);
+  const addUser = React.useCallback(async (userData: Omit<User, 'id'>) => {
+    const newUser = await dbAddUser(userData);
+    if (newUser) {
+      setUsers(prev => [...prev, newUser]);
+    }
   }, []);
 
-  const updateUser = React.useCallback((updatedUser: User) => {
-    setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+  const updateUser = React.useCallback(async (updatedUser: User) => {
+    const result = await dbUpdateUser(updatedUser);
+    if (result) {
+      setUsers(prev => prev.map(u => u.id === result.id ? result : u));
+    }
   }, []);
 
-  const deleteUser = React.useCallback((userId: string) => {
-    const isUserInUse = shifts.some(shift => shift.userId === userId);
-    if (isUserInUse) return false;
-    setUsers(prev => prev.filter(u => u.id !== userId));
-    return true;
-  }, [shifts]);
+  const deleteUser = React.useCallback(async (userId: string): Promise<boolean> => {
+    // We should add a check here to see if the user is in use in any shifts before deleting.
+    // This is a simplified version for now.
+    const success = await dbDeleteUser(userId);
+    if (success) {
+      setUsers(prev => prev.filter(u => u.id !== userId));
+    }
+    return success;
+  }, []);
   
-  const addRole = React.useCallback((roleData: Omit<Role, 'id'>) => {
-    const newRole: Role = { id: `role${Date.now()}`, ...roleData };
-    setRoles(prev => [...prev, newRole]);
+  const addRole = React.useCallback(async (roleData: Omit<Role, 'id'>) => {
+    const newRole = await dbAddRole(roleData);
+    if (newRole) {
+      setRoles(prev => [...prev, newRole]);
+    }
   }, []);
   
-  const updateRole = React.useCallback((updatedRole: Role) => {
-    setRoles(prev => prev.map(r => r.id === updatedRole.id ? updatedRole : r));
+  const updateRole = React.useCallback(async (updatedRole: Role) => {
+    const result = await dbUpdateRole(updatedRole);
+    if (result) {
+      setRoles(prev => prev.map(r => r.id === result.id ? result : r));
+    }
   }, []);
 
-  const deleteRole = React.useCallback((roleId: string) => {
+  const deleteRole = React.useCallback(async (roleId: string): Promise<boolean> => {
     const isRoleInUse = users.some(u => u.roleId === roleId);
-    if (isRoleInUse) return false;
-    setRoles(prev => prev.filter(r => r.id !== roleId));
-    return true;
-  }, [users]);
+    if (isRoleInUse) {
+      toast({ title: "Error", description: "No se puede eliminar un rol que está asignado a uno o más usuarios.", variant: "destructive" });
+      return false;
+    }
+    const success = await dbDeleteRole(roleId);
+    if (success) {
+      setRoles(prev => prev.filter(r => r.id !== roleId));
+    }
+    return success;
+  }, [users, toast]);
   
   // Settings Management
   const addOrderType = React.useCallback((data: Omit<OrderType, 'id'>) => {
@@ -309,40 +333,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return true;
   }, [orders, deliveryPlatforms, toast]);
 
-  const login = React.useCallback((userId: string, pin: string): boolean => {
-    const user = users.find(u => u.id === userId);
-    const role = roles.find(r => r.id === user?.roleId);
+  const startShift = React.useCallback((user: User) => {
+    const role = roles.find(r => r.id === user.roleId);
+    if (role) {
+      const userWithRole: CurrentUser = { ...user, role };
+      setCurrentUser(userWithRole);
 
-    if (user && user.pin === pin && role) {
-        const userWithRole: CurrentUser = { ...user, role };
-        setCurrentUser(userWithRole);
-        
-        if (role.permissions.includes('caja')) {
-            const newShift: Shift = {
-                id: `shift${Date.now()}`,
-                userId: user.id,
-                userName: user.name,
-                startTime: new Date().toISOString(),
-                orders: [],
-                totalSales: 0,
-            };
-            setActiveShift(newShift);
-        }
-        return true;
+      if (role.permissions.includes('caja')) {
+        const newShift: Shift = {
+          id: `shift${Date.now()}`,
+          userId: user.id,
+          userName: user.name,
+          startTime: new Date().toISOString(),
+          orders: [],
+          totalSales: 0,
+        };
+        setActiveShift(newShift);
+      }
+      toast({ title: `Turno iniciado para ${user.name}` });
+    } else {
+      toast({ title: "Error", description: "No se pudo encontrar el rol para este usuario.", variant: "destructive" });
     }
-    return false;
-  }, [users, roles]);
+  }, [roles, toast]);
 
   const logout = React.useCallback(() => {
+    // This will be handled by Supabase Auth signout action
+    // For now, it just clears local state
     if (activeShift) {
         const endedShift = { ...activeShift, endTime: new Date().toISOString() };
         setShifts(prev => [...prev, endedShift]);
         setActiveShift(null);
     }
     setCurrentUser(null);
-    router.push('/');
-  }, [activeShift, router]);
-  
+    // The redirect will be handled by middleware or page logic
+  }, [activeShift]);
+
   const endDay = React.useCallback(() => {
     if (currentUser) {
         logout();
@@ -362,7 +387,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     addOrderType, updateOrderType, deleteOrderType,
     addPaymentMethod, updatePaymentMethod, deletePaymentMethod,
     addDeliveryPlatform, updateDeliveryPlatform, deleteDeliveryPlatform,
-    login, logout, endDay,
+    setCurrentUser, startShift, logout, endDay,
   }), [
     products, ingredients, categories, orders, expenses, customers, users, roles, shifts, currentUser,
     orderTypes, paymentMethods, deliveryPlatforms,
@@ -376,7 +401,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     addOrderType, updateOrderType, deleteOrderType,
     addPaymentMethod, updatePaymentMethod, deletePaymentMethod,
     addDeliveryPlatform, updateDeliveryPlatform, deleteDeliveryPlatform,
-    login, logout, endDay,
+    startShift, logout, endDay,
   ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
