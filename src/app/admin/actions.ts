@@ -7,7 +7,8 @@ import type { User, Role } from '@/types'
 // --- User Management Actions ---
 export async function addUserAction(userData: Omit<User, 'id'>) {
   const supabase = createClient()
-  const { data, error } = await supabase.from('users').insert(userData).select().single()
+  const { roleId, ...rest } = userData;
+  const { data, error } = await supabase.from('users').insert({ ...rest, role_id: roleId }).select().single()
   if (error) {
     throw new Error(error.message)
   }
@@ -17,7 +18,8 @@ export async function addUserAction(userData: Omit<User, 'id'>) {
 
 export async function updateUserAction(userData: User) {
   const supabase = createClient()
-  const { data, error } = await supabase.from('users').update(userData).eq('id', userData.id).select().single()
+  const { roleId, ...rest } = userData;
+  const { data, error } = await supabase.from('users').update({ ...rest, role_id: roleId }).eq('id', userData.id).select().single()
   if (error) {
     throw new Error(error.message)
   }
