@@ -1,7 +1,7 @@
-
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/context/AppContext";
-import { PlusCircle, Users, Trash2, Edit, ShieldCheck, UserCog, Settings, ToggleLeft } from "lucide-react";
+import { PlusCircle, Users, Trash2, Edit, ShieldCheck, UserCog, Settings } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,14 +36,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
-import type { User, Role, OrderType, PaymentMethod, DeliveryPlatform } from "@/types";
-import LoginScreen from "@/components/cashier/LoginScreen";
+import type { User, Role } from "@/types";
+import { addUserAction, updateUserAction, deleteUserAction, addRoleAction, updateRoleAction, deleteRoleAction } from "./actions";
 
 const userSchema = z.object({
   name: z.string().min(1, "El nombre es requerido."),
@@ -66,20 +65,14 @@ const roleSchema = z.object({
   }),
 });
 
-const orderTypeSchema = z.object({ name: z.string().min(1, "El nombre es requerido.") });
-const paymentMethodSchema = z.object({ name: z.string().min(1, "El nombre es requerido."), isPlatformPayment: z.boolean() });
-const deliveryPlatformSchema = z.object({ name: z.string().min(1, "El nombre es requerido."), requiresPlatformPayment: z.boolean() });
-
 type DeletableItem =
   | { type: 'user'; item: User }
-  | { type: 'role'; item: Role }
-  | { type: 'orderType'; item: OrderType }
-  | { type: 'paymentMethod'; item: PaymentMethod }
-  | { type: 'deliveryPlatform'; item: DeliveryPlatform };
+  | { type: 'role'; item: Role };
 
-export default function AdminPage() {
-  const context = useAppContext();
+export default function AdminClientPage() {
+  const { users, roles } = useAppContext();
   const { toast } = useToast();
+  const router = useRouter();
 
   const [isUserDialogOpen, setIsUserDialogOpen] = React.useState(false);
   const [editingUser, setEditingUser] = React.useState<User | null>(null);
@@ -90,15 +83,10 @@ export default function AdminPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [itemToDelete, setItemToDelete] = React.useState<DeletableItem | null>(null);
 
-  const [isSettingDialogOpen, setIsSettingDialogOpen] = React.useState(false);
-  const [editingSetting, setEditingSetting] = React.useState<DeletableItem | null>(null);
-
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const userForm = useForm<z.infer<typeof userSchema>>({ resolver: zodResolver(userSchema) });
   const roleForm = useForm<z.infer<typeof roleSchema>>({ resolver: zodResolver(roleSchema) });
-  const orderTypeForm = useForm<z.infer<typeof orderTypeSchema>>({ resolver: zodResolver(orderTypeSchema) });
-  const paymentMethodForm = useForm<z.infer<typeof paymentMethodSchema>>({ resolver: zodResolver(paymentMethodSchema) });
-  const deliveryPlatformForm = useForm<z.infer<typeof deliveryPlatformSchema>>({ resolver: zodResolver(deliveryPlatformSchema) });
 
   React.useEffect(() => {
     if (isUserDialogOpen) userForm.reset(editingUser || { name: "", pin: "", roleId: "" });
@@ -110,141 +98,70 @@ export default function AdminPage() {
     else setEditingRole(null);
   }, [isRoleDialogOpen, editingRole, roleForm]);
 
-  React.useEffect(() => {
-    if (isSettingDialogOpen && editingSetting) {
-      switch (editingSetting.type) {
-        case 'orderType': orderTypeForm.reset(editingSetting.item); break;
-        case 'paymentMethod': paymentMethodForm.reset(editingSetting.item); break;
-        case 'deliveryPlatform': deliveryPlatformForm.reset(editingSetting.item); break;
+  const handleUserSubmit = async (data: z.infer<typeof userSchema>) => {
+    setIsSubmitting(true);
+    try {
+      if (editingUser) {
+        await updateUserAction({ ...editingUser, ...data });
+      } else {
+        await addUserAction(data);
       }
-    } else {
-      setEditingSetting(null);
-      orderTypeForm.reset({ name: '' });
-      paymentMethodForm.reset({ name: '', isPlatformPayment: false });
-      deliveryPlatformForm.reset({ name: '', requiresPlatformPayment: false });
+      toast({ title: `Usuario ${editingUser ? 'actualizado' : 'añadido'}`, description: `El usuario "${data.name}" ha sido guardado.`});
+      setIsUserDialogOpen(false);
+      router.refresh(); // Re-fetch data on the server and re-render
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [isSettingDialogOpen, editingSetting, orderTypeForm, paymentMethodForm, deliveryPlatformForm]);
-
-  const handleUserSubmit = (data: z.infer<typeof userSchema>) => {
-    if(editingUser) context.updateUser({ ...editingUser, ...data });
-    else context.addUser(data);
-    toast({ title: `Usuario ${editingUser ? 'actualizado' : 'añadido'}`, description: `El usuario "${data.name}" ha sido ${editingUser ? 'actualizado' : 'creado'}.`});
-    setIsUserDialogOpen(false);
   };
 
-  const handleRoleSubmit = (data: z.infer<typeof roleSchema>) => {
-    if(editingRole) context.updateRole({ ...editingRole, ...data });
-    else context.addRole(data);
-    toast({ title: `Rol ${editingRole ? 'actualizado' : 'añadido'}`, description: `El rol "${data.name}" ha sido ${editingRole ? 'actualizado' : 'creado'}.`});
-    setIsRoleDialogOpen(false);
-  };
-
-  const handleSettingSubmit = (data: any) => {
-    if (!editingSetting) return;
-    const type = editingSetting.type;
-    if (editingSetting.item.id) { // Editing existing
-      const updatedItem = { ...editingSetting.item, ...data };
-      if (type === 'orderType') context.updateOrderType(updatedItem);
-      else if (type === 'paymentMethod') context.updatePaymentMethod(updatedItem);
-      else if (type === 'deliveryPlatform') context.updateDeliveryPlatform(updatedItem);
-    } else { // Adding new
-      if (type === 'orderType') context.addOrderType(data);
-      else if (type === 'paymentMethod') context.addPaymentMethod(data);
-      else if (type === 'deliveryPlatform') context.addDeliveryPlatform(data);
+  const handleRoleSubmit = async (data: z.infer<typeof roleSchema>) => {
+    setIsSubmitting(true);
+    try {
+      if (editingRole) {
+        await updateRoleAction({ ...editingRole, ...data });
+      } else {
+        await addRoleAction(data);
+      }
+      toast({ title: `Rol ${editingRole ? 'actualizado' : 'añadido'}`, description: `El rol "${data.name}" ha sido guardado.`});
+      setIsRoleDialogOpen(false);
+      router.refresh();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
     }
-    toast({ title: "Configuración guardada", description: `El elemento "${data.name}" ha sido guardado.` });
-    setIsSettingDialogOpen(false);
   };
 
-
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!itemToDelete) return;
-
-    let success = false;
-    let message: { title: string, description: string } | null = null;
-    let variant: "default" | "destructive" = "default";
-
-    switch (itemToDelete.type) {
-      case 'user': success = context.deleteUser(itemToDelete.item.id); break;
-      case 'role': success = context.deleteRole(itemToDelete.item.id); break;
-      case 'orderType': success = context.deleteOrderType(itemToDelete.item.id); break;
-      case 'paymentMethod': success = context.deletePaymentMethod(itemToDelete.item.id); break;
-      case 'deliveryPlatform': success = context.deleteDeliveryPlatform(itemToDelete.item.id); break;
+    setIsSubmitting(true);
+    try {
+      if (itemToDelete.type === 'user') {
+        // Optional: Add check if user is in use in a shift before deleting
+        await deleteUserAction(itemToDelete.item.id);
+      } else if (itemToDelete.type === 'role') {
+        const isRoleInUse = users.some(u => u.roleId === itemToDelete.item.id);
+        if (isRoleInUse) {
+          throw new Error("No se puede eliminar un rol que está asignado a uno o más usuarios.");
+        }
+        await deleteRoleAction(itemToDelete.item.id);
+      }
+      toast({ title: "Elemento eliminado", description: `El elemento "${itemToDelete.item.name}" ha sido eliminado.` });
+      setIsDeleteDialogOpen(false);
+      setItemToDelete(null);
+      router.refresh();
+    } catch (error: any) {
+      toast({ title: "Error al eliminar", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (success) {
-      message = { title: "Elemento eliminado", description: `El elemento "${itemToDelete.item.name}" ha sido eliminado.` };
-    } else {
-      message = { title: "Error al eliminar", description: `El elemento "${itemToDelete.item.name}" está en uso y no puede ser eliminado.` };
-      variant = 'destructive';
-    }
-
-    if (!success && (itemToDelete.type === 'user' || itemToDelete.type === 'role')) {
-       message!.description = `No se puede eliminar porque está asignado o tiene registros asociados.`
-    }
-
-    toast({ ...message, variant });
-    setIsDeleteDialogOpen(false);
-    setItemToDelete(null);
   };
 
   const openDeleteDialog = (item: DeletableItem) => {
     setItemToDelete(item);
     setIsDeleteDialogOpen(true);
-  };
-
-  const openSettingDialog = (item: DeletableItem) => {
-    setEditingSetting(item);
-    setIsSettingDialogOpen(true);
-  };
-
-  if (!context.currentUser) {
-    return <LoginScreen />;
-  }
-
-  if (!context.currentUser.role.permissions.includes('admin')) {
-    return (
-        <AppShell>
-            <div className="flex flex-col items-center justify-center h-full text-center">
-                <h1 className="text-2xl font-bold">Acceso Denegado</h1>
-                <p className="text-muted-foreground">No tienes permiso para acceder a esta sección.</p>
-            </div>
-        </AppShell>
-    );
-  }
-
-  const renderSettingDialogContent = () => {
-    if (!editingSetting) return null;
-    switch(editingSetting.type) {
-      case 'orderType':
-        return <Form {...orderTypeForm}><form onSubmit={orderTypeForm.handleSubmit(handleSettingSubmit)} className="space-y-4 py-4">
-          <FormField control={orderTypeForm.control} name="name" render={({ field }) => (
-            <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input {...field} placeholder="Ej: Para Comer Aquí" /></FormControl><FormMessage /></FormItem>
-          )} />
-          <DialogFooter><Button type="button" variant="outline" onClick={() => setIsSettingDialogOpen(false)}>Cancelar</Button><Button type="submit">Guardar</Button></DialogFooter>
-        </form></Form>;
-      case 'paymentMethod':
-        return <Form {...paymentMethodForm}><form onSubmit={paymentMethodForm.handleSubmit(handleSettingSubmit)} className="space-y-4 py-4">
-          <FormField control={paymentMethodForm.control} name="name" render={({ field }) => (
-            <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input {...field} placeholder="Ej: Tarjeta de Crédito" /></FormControl><FormMessage /></FormItem>
-          )} />
-          <FormField control={paymentMethodForm.control} name="isPlatformPayment" render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm"><FormLabel>¿Es un pago de plataforma?</FormLabel><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>
-          )} />
-          <DialogFooter><Button type="button" variant="outline" onClick={() => setIsSettingDialogOpen(false)}>Cancelar</Button><Button type="submit">Guardar</Button></DialogFooter>
-        </form></Form>;
-      case 'deliveryPlatform':
-        return <Form {...deliveryPlatformForm}><form onSubmit={deliveryPlatformForm.handleSubmit(handleSettingSubmit)} className="space-y-4 py-4">
-          <FormField control={deliveryPlatformForm.control} name="name" render={({ field }) => (
-            <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input {...field} placeholder="Ej: Uber Eats" /></FormControl><FormMessage /></FormItem>
-          )} />
-          <FormField control={deliveryPlatformForm.control} name="requiresPlatformPayment" render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm"><FormLabel>¿Requiere pago automático en plataforma?</FormLabel><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>
-          )} />
-          <DialogFooter><Button type="button" variant="outline" onClick={() => setIsSettingDialogOpen(false)}>Cancelar</Button><Button type="submit">Guardar</Button></DialogFooter>
-        </form></Form>;
-      default: return null;
-    }
   };
 
   return (
@@ -253,10 +170,9 @@ export default function AdminPage() {
         <h1 className="text-3xl font-bold">Panel de Administración</h1>
 
         <Tabs defaultValue="users">
-            <TabsList className="grid w-full grid-cols-1 gap-1.5 sm:grid-cols-3">
+            <TabsList className="grid w-full grid-cols-1 gap-1.5 sm:grid-cols-2">
                 <TabsTrigger value="users">Gestión de Usuarios</TabsTrigger>
                 <TabsTrigger value="roles">Gestión de Roles</TabsTrigger>
-                <TabsTrigger value="settings">Configuración del Sistema</TabsTrigger>
             </TabsList>
 
             <TabsContent value="users" className="mt-6">
@@ -264,7 +180,7 @@ export default function AdminPage() {
                     <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <CardTitle className="flex items-center gap-2"><UserCog /> Usuarios del Sistema</CardTitle>
-                            <CardDescription>Añade, edita o elimina usuarios.</CardDescription>
+                            <CardDescription>Añade, edita o elimina empleados y sus PINs.</CardDescription>
                         </div>
                         <Button onClick={() => { setEditingUser(null); setIsUserDialogOpen(true); }} className="w-full sm:w-auto">
                            <PlusCircle className="mr-2 h-4 w-4"/> Añadir Usuario
@@ -280,15 +196,15 @@ export default function AdminPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {context.users.map((user) => (
+                            {users.map((user) => (
                             <TableRow key={user.id}>
                                 <TableCell className="font-medium">{user.name}</TableCell>
-                                <TableCell>{context.roles.find(r => r.id === user.roleId)?.name || 'N/A'}</TableCell>
+                                <TableCell>{roles.find(r => r.id === user.roleId)?.name || 'N/A'}</TableCell>
                                 <TableCell>
                                     <Button variant="ghost" size="icon" onClick={() => { setEditingUser(user); setIsUserDialogOpen(true); }}>
                                         <Edit className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => openDeleteDialog({type: 'user', item: user})} disabled={user.id === 'user1'}>
+                                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => openDeleteDialog({type: 'user', item: user})}>
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </TableCell>
@@ -321,7 +237,7 @@ export default function AdminPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {context.roles.map((role) => (
+                            {roles.map((role) => (
                             <TableRow key={role.id}>
                                 <TableCell className="font-medium">{role.name}</TableCell>
                                 <TableCell className="text-xs">{role.permissions.join(', ')}</TableCell>
@@ -329,7 +245,7 @@ export default function AdminPage() {
                                     <Button variant="ghost" size="icon" onClick={() => { setEditingRole(role); setIsRoleDialogOpen(true);}}>
                                         <Edit className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => openDeleteDialog({type: 'role', item: role})} disabled={role.id === 'role1'}>
+                                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => openDeleteDialog({type: 'role', item: role})}>
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </TableCell>
@@ -338,56 +254,6 @@ export default function AdminPage() {
                         </TableBody>
                         </Table>
                     </CardContent>
-                </Card>
-            </TabsContent>
-
-            <TabsContent value="settings" className="mt-6 space-y-6">
-                <Card>
-                    <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <CardTitle className="flex items-center gap-2"><Settings /> Tipos de Pedido</CardTitle>
-                        <Button onClick={() => openSettingDialog({ type: 'orderType', item: { id: '', name: '' } })} className="w-full sm:w-auto">
-                           <PlusCircle className="mr-2 h-4 w-4"/> Añadir
-                        </Button>
-                    </CardHeader>
-                    <CardContent><Table><TableHeader><TableRow><TableHead>Nombre</TableHead><TableHead>Acciones</TableHead></TableRow></TableHeader>
-                        <TableBody>{context.orderTypes.map(item => (<TableRow key={item.id}>
-                            <TableCell>{item.name}</TableCell>
-                            <TableCell><Button variant="ghost" size="icon" onClick={() => openSettingDialog({type: 'orderType', item})}><Edit className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => openDeleteDialog({type: 'orderType', item})}><Trash2 className="h-4 w-4" /></Button></TableCell>
-                        </TableRow>))}</TableBody>
-                    </Table></CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <CardTitle className="flex items-center gap-2"><Settings /> Métodos de Pago</CardTitle>
-                        <Button onClick={() => openSettingDialog({ type: 'paymentMethod', item: { id: '', name: '', isPlatformPayment: false } })} className="w-full sm:w-auto">
-                           <PlusCircle className="mr-2 h-4 w-4"/> Añadir
-                        </Button>
-                    </CardHeader>
-                    <CardContent><Table><TableHeader><TableRow><TableHead>Nombre</TableHead><TableHead>Es de Plataforma</TableHead><TableHead>Acciones</TableHead></TableRow></TableHeader>
-                        <TableBody>{context.paymentMethods.map(item => (<TableRow key={item.id}>
-                            <TableCell>{item.name}</TableCell>
-                            <TableCell>{item.isPlatformPayment ? 'Sí' : 'No'}</TableCell>
-                            <TableCell><Button variant="ghost" size="icon" onClick={() => openSettingDialog({type: 'paymentMethod', item})}><Edit className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => openDeleteDialog({type: 'paymentMethod', item})}><Trash2 className="h-4 w-4" /></Button></TableCell>
-                        </TableRow>))}</TableBody>
-                    </Table></CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <CardTitle className="flex items-center gap-2"><Settings /> Plataformas de Delivery</CardTitle>
-                        <Button onClick={() => openSettingDialog({ type: 'deliveryPlatform', item: { id: '', name: '', requiresPlatformPayment: false } })} className="w-full sm:w-auto">
-                           <PlusCircle className="mr-2 h-4 w-4"/> Añadir
-                        </Button>
-                    </CardHeader>
-                    <CardContent><Table><TableHeader><TableRow><TableHead>Nombre</TableHead><TableHead>Pago Automático</TableHead><TableHead>Acciones</TableHead></TableRow></TableHeader>
-                        <TableBody>{context.deliveryPlatforms.map(item => (<TableRow key={item.id}>
-                            <TableCell>{item.name}</TableCell>
-                            <TableCell>{item.requiresPlatformPayment ? 'Sí' : 'No'}</TableCell>
-                            <TableCell><Button variant="ghost" size="icon" onClick={() => openSettingDialog({type: 'deliveryPlatform', item})}><Edit className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => openDeleteDialog({type: 'deliveryPlatform', item})}><Trash2 className="h-4 w-4" /></Button></TableCell>
-                        </TableRow>))}</TableBody>
-                    </Table></CardContent>
                 </Card>
             </TabsContent>
         </Tabs>
@@ -411,14 +277,14 @@ export default function AdminPage() {
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Selecciona un rol" /></SelectTrigger></FormControl>
                                 <SelectContent>
-                                    {context.roles.map(role => (<SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>))}
+                                    {roles.map(role => (<SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>))}
                                 </SelectContent>
                                 </Select>
                             <FormMessage /></FormItem>
                         )}/>
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setIsUserDialogOpen(false)}>Cancelar</Button>
-                            <Button type="submit">Guardar</Button>
+                            <Button type="button" variant="outline" onClick={() => setIsUserDialogOpen(false)} disabled={isSubmitting}>Cancelar</Button>
+                            <Button type="submit" disabled={isSubmitting}>Guardar</Button>
                         </DialogFooter>
                     </form>
                 </Form>
@@ -467,21 +333,11 @@ export default function AdminPage() {
                             </FormItem>
                         )}/>
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setIsRoleDialogOpen(false)}>Cancelar</Button>
-                            <Button type="submit">Guardar</Button>
+                            <Button type="button" variant="outline" onClick={() => setIsRoleDialogOpen(false)} disabled={isSubmitting}>Cancelar</Button>
+                            <Button type="submit" disabled={isSubmitting}>Guardar</Button>
                         </DialogFooter>
                     </form>
                 </Form>
-            </DialogContent>
-        </Dialog>
-
-        {/* Settings Dialog */}
-        <Dialog open={isSettingDialogOpen} onOpenChange={setIsSettingDialogOpen}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{editingSetting?.item.id ? 'Editar' : 'Añadir'} Configuración</DialogTitle>
-                </DialogHeader>
-                {renderSettingDialogContent()}
             </DialogContent>
         </Dialog>
 
@@ -495,7 +351,7 @@ export default function AdminPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteConfirm}>Eliminar</AlertDialogAction>
+              <AlertDialogAction onClick={handleDeleteConfirm} disabled={isSubmitting}>Eliminar</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
