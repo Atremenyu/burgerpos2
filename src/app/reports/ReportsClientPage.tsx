@@ -190,7 +190,7 @@ export default function ReportsClientPage() {
 
   const hasPermission = React.useMemo(() => {
     if (adminUser) return true;
-    if (currentUser) return currentUser.role.permissions.includes('reports');
+    if (currentUser) return currentUser.role?.permissions?.includes('reports') ?? false;
     return false;
   }, [currentUser, adminUser]);
 

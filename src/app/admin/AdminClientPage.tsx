@@ -179,7 +179,7 @@ export default function AdminClientPage() {
 
   const hasPermission = React.useMemo(() => {
     if (adminUser) return true; // Admin always has access
-    if (currentUser) return currentUser.role.permissions.includes('admin'); // Employee needs specific permission
+    if (currentUser) return currentUser.role?.permissions?.includes('admin') ?? false; // Employee needs specific permission
     return false;
   }, [currentUser, adminUser]);
 

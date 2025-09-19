@@ -36,7 +36,7 @@ export default function KitchenClientPage() {
 
   const hasPermission = React.useMemo(() => {
     if (adminUser) return true;
-    if (currentUser) return currentUser.role.permissions.includes('kitchen');
+    if (currentUser) return currentUser.role?.permissions?.includes('kitchen') ?? false;
     return false;
   }, [currentUser, adminUser]);
 

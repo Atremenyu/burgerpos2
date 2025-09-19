@@ -150,7 +150,7 @@ export default function InventoryClientPage() {
 
   const hasPermission = React.useMemo(() => {
     if (adminUser) return true;
-    if (currentUser) return currentUser.role.permissions.includes('inventory');
+    if (currentUser) return currentUser.role?.permissions?.includes('inventory') ?? false;
     return false;
   }, [currentUser, adminUser]);
 
