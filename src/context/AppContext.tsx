@@ -47,6 +47,7 @@ interface AppProviderProps {
 }
 
 export function AppProvider({ children, initialData }: AppProviderProps) {
+  console.log("Initial data received by AppProvider:", initialData);
   const { toast } = useToast();
   const router = useRouter();
 
