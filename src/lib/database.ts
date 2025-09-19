@@ -1,4 +1,3 @@
-
 import { supabase } from './supabaseClient';
 import type { Category, Product, Ingredient, User, Role, OrderType, PaymentMethod, DeliveryPlatform } from '@/types';
 
