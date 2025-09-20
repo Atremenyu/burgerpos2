@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -54,7 +55,7 @@ import { useAppContext } from "@/context/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
-
+import { addProductAction, updateProductAction, deleteProductAction, addIngredientAction, updateIngredientAction, deleteIngredientAction, addCategoryAction, updateCategoryAction, deleteCategoryAction } from "./actions";
 
 const productSchema = z.object({
   name: z.string().min(1, { message: "El nombre es requerido." }),
@@ -83,6 +84,7 @@ export default function InventoryClientPage() {
     currentUser,
   } = useAppContext();
   const { toast } = useToast();
+  const router = useRouter();
   const [adminUser, setAdminUser] = React.useState<SupabaseUser | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
 
@@ -108,40 +110,135 @@ export default function InventoryClientPage() {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [deletingItem, setDeletingItem] = React.useState<{ type: 'product' | 'ingredient' | 'category'; id: string; name: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const productForm = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
-    defaultValues: { name: '', category: '', price: 0, comboPrice: '', stock: 0, image: '' },
   });
 
   const ingredientForm = useForm<z.infer<typeof ingredientSchema>>({
     resolver: zodResolver(ingredientSchema),
-    defaultValues: { name: '', stock: 0, unit: 'pcs' },
   });
 
   const categoryForm = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
-    defaultValues: { name: '' },
   });
 
-  // NOTE: The logic for add/update/delete has been moved to Server Actions.
-  // This component would need to be updated to call those actions, similar to AdminClientPage.
-  // For now, the forms will open but submitting will not persist data.
+  React.useEffect(() => {
+    if (isProductDialogOpen) {
+      const defaultValues = editingProduct
+        ? { ...editingProduct, comboPrice: editingProduct.comboPrice || '' }
+        : { name: '', category: '', price: 0, comboPrice: '', stock: 0, image: 'https://placehold.co/300x300.png' };
+      productForm.reset(defaultValues);
+      setImagePreview(defaultValues.image || null);
+    } else {
+        setEditingProduct(null);
+    }
+  }, [isProductDialogOpen, editingProduct, productForm]);
 
-  const openProductDialog = React.useCallback((product: Product | null) => {
-    setEditingProduct(product);
-    setIsProductDialogOpen(true);
-  }, []);
+  React.useEffect(() => {
+    if (isIngredientDialogOpen) {
+      ingredientForm.reset(editingIngredient || { name: '', stock: 0, unit: 'pcs' });
+    } else {
+      setEditingIngredient(null);
+    }
+  }, [isIngredientDialogOpen, editingIngredient, ingredientForm]);
 
-  const openIngredientDialog = React.useCallback((ingredient: Ingredient | null) => {
-    setEditingIngredient(ingredient);
-    setIsIngredientDialogOpen(true);
-  }, []);
+  React.useEffect(() => {
+    if (isCategoryDialogOpen) {
+      categoryForm.reset(editingCategory || { name: '' });
+    } else {
+      setEditingCategory(null);
+    }
+  }, [isCategoryDialogOpen, editingCategory, categoryForm]);
 
-  const openCategoryDialog = React.useCallback((category: Category | null) => {
-    setEditingCategory(category);
-    setIsCategoryDialogOpen(true);
-  }, []);
+  const handleProductSubmit = async (data: z.infer<typeof productSchema>) => {
+    setIsSubmitting(true);
+    try {
+      const productData = {
+        ...data,
+        comboPrice: data.comboPrice ? Number(data.comboPrice) : undefined,
+        image: data.image || 'https://placehold.co/300x300.png',
+      };
+      if (editingProduct) {
+        await updateProductAction({ ...editingProduct, ...productData });
+      } else {
+        await addProductAction(productData);
+      }
+      toast({ title: `Producto ${editingProduct ? 'actualizado' : 'añadido'}` });
+      setIsProductDialogOpen(false);
+      router.refresh();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleIngredientSubmit = async (data: z.infer<typeof ingredientSchema>) => {
+    setIsSubmitting(true);
+    try {
+      if (editingIngredient) {
+        await updateIngredientAction({ ...editingIngredient, ...data });
+      } else {
+        await addIngredientAction(data);
+      }
+      toast({ title: `Ingrediente ${editingIngredient ? 'actualizado' : 'añadido'}` });
+      setIsIngredientDialogOpen(false);
+      router.refresh();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCategorySubmit = async (data: z.infer<typeof categorySchema>) => {
+    setIsSubmitting(true);
+    try {
+      const isDuplicate = categories.some(
+        c => c.name.toLowerCase() === data.name.toLowerCase() && c.id !== editingCategory?.id
+      );
+      if (isDuplicate) throw new Error("Ya existe una categoría con este nombre.");
+
+      if (editingCategory) {
+        await updateCategoryAction({ ...editingCategory, ...data });
+      } else {
+        await addCategoryAction(data);
+      }
+      toast({ title: `Categoría ${editingCategory ? 'actualizada' : 'añadida'}` });
+      setIsCategoryDialogOpen(false);
+      router.refresh();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingItem) return;
+    setIsSubmitting(true);
+    try {
+      if (deletingItem.type === 'product') {
+        await deleteProductAction(deletingItem.id);
+      } else if (deletingItem.type === 'ingredient') {
+        await deleteIngredientAction(deletingItem.id);
+      } else if (deletingItem.type === 'category') {
+        const isCategoryInUse = products.some(p => p.category === deletingItem.name);
+        if (isCategoryInUse) throw new Error("No se puede eliminar la categoría porque está siendo utilizada por uno o más productos.");
+        await deleteCategoryAction(deletingItem.id);
+      }
+      toast({ title: "Elemento eliminado" });
+      router.refresh();
+    } catch (error: any) {
+      toast({ title: "Error al eliminar", description: error.message, variant: "destructive" });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setDeletingItem(null);
+      setIsSubmitting(false);
+    }
+  };
 
   const openDeleteDialog = React.useCallback((item: { type: 'product' | 'ingredient' | 'category'; id: string; name: string }) => {
     setDeletingItem(item);
@@ -182,11 +279,7 @@ export default function InventoryClientPage() {
         </TabsList>
         <TabsContent value="products">
           <div className="flex justify-end gap-2 mb-4">
-             <Button variant="outline">
-               <Download className="mr-2 h-4 w-4" />
-               Exportar CSV
-             </Button>
-            <Button onClick={() => openProductDialog(null)}>
+            <Button onClick={() => setIsProductDialogOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Añadir Producto
             </Button>
@@ -198,7 +291,6 @@ export default function InventoryClientPage() {
                 <TableHead>Nombre</TableHead>
                 <TableHead>Categoría</TableHead>
                 <TableHead>Precio</TableHead>
-                <TableHead>Precio Combo</TableHead>
                 <TableHead>Existencias</TableHead>
                 <TableHead>Acciones</TableHead>
               </TableRow>
@@ -218,10 +310,9 @@ export default function InventoryClientPage() {
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{product.category}</TableCell>
                   <TableCell>${product.price.toFixed(2)}</TableCell>
-                  <TableCell>{product.comboPrice ? `$${product.comboPrice.toFixed(2)}` : 'N/A'}</TableCell>
                   <TableCell>{product.stock}</TableCell>
                   <TableCell className="flex gap-2">
-                     <Button variant="ghost" size="icon" onClick={() => openProductDialog(product)}><Edit className="h-4 w-4"/></Button>
+                     <Button variant="ghost" size="icon" onClick={() => {setEditingProduct(product); setIsProductDialogOpen(true);}}><Edit className="h-4 w-4"/></Button>
                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => openDeleteDialog({ type: 'product', id: product.id, name: product.name })}><Trash2 className="h-4 w-4"/></Button>
                   </TableCell>
                 </TableRow>
@@ -231,6 +322,7 @@ export default function InventoryClientPage() {
         </TabsContent>
         {/* Other TabsContent would go here */}
       </Tabs>
+       {/* Dialogs go here */}
     </AppShell>
   );
 }
