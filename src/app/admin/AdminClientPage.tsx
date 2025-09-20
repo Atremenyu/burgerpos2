@@ -125,7 +125,7 @@ export default function AdminClientPage() {
       }
       toast({ title: `Usuario ${editingUser ? 'actualizado' : 'añadido'}`, description: `El usuario "${data.name}" ha sido guardado.`});
       setIsUserDialogOpen(false);
-      router.refresh(); // Re-fetch data on the server and re-render
+      router.refresh();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {

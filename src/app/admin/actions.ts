@@ -13,7 +13,6 @@ export async function addUserAction(userData: Omit<User, 'id'>) {
   if (error) {
     throw new Error(error.message)
   }
-  revalidatePath('/admin')
   return data
 }
 
@@ -24,7 +23,6 @@ export async function updateUserAction(userData: User) {
   if (error) {
     throw new Error(error.message)
   }
-  revalidatePath('/admin')
   return data
 }
 
@@ -34,7 +32,6 @@ export async function deleteUserAction(userId: string) {
   if (error) {
     throw new Error(error.message)
   }
-  revalidatePath('/admin')
 }
 
 
@@ -45,7 +42,6 @@ export async function addRoleAction(roleData: Omit<Role, 'id'>) {
   if (error) {
     throw new Error(error.message)
   }
-  revalidatePath('/admin')
   return data
 }
 
@@ -55,7 +51,6 @@ export async function updateRoleAction(roleData: Role) {
   if (error) {
     throw new Error(error.message)
   }
-  revalidatePath('/admin')
   return data
 }
 
@@ -65,5 +60,4 @@ export async function deleteRoleAction(roleId: string) {
   if (error) {
     throw new Error(error.message)
   }
-  revalidatePath('/admin')
 }
