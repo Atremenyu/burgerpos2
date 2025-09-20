@@ -103,8 +103,11 @@ export default function AdminClientPage() {
   const roleForm = useForm<z.infer<typeof roleSchema>>({ resolver: zodResolver(roleSchema) });
 
   React.useEffect(() => {
-    if (isUserDialogOpen) userForm.reset(editingUser || { name: "", pin: "", roleId: "" });
-    else setEditingUser(null);
+    if (isUserDialogOpen) {
+      userForm.reset(editingUser || { name: "", pin: "", roleId: undefined });
+    } else {
+      setEditingUser(null);
+    }
   }, [isUserDialogOpen, editingUser, userForm]);
 
   React.useEffect(() => {

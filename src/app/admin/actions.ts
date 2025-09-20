@@ -6,11 +6,9 @@ import type { User, Role } from '@/types'
 
 // --- User Management Actions ---
 export async function addUserAction(userData: Omit<User, 'id'>) {
-  console.log("Datos recibidos en addUserAction:", userData);
   const supabase = createClient()
   const { roleId, ...rest } = userData;
   const userToInsert = { ...rest, role_id: roleId };
-  console.log("Datos a insertar en Supabase:", userToInsert);
   const { data, error } = await supabase.from('users').insert(userToInsert).select().single()
   if (error) {
     throw new Error(error.message)
