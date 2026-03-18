@@ -4,9 +4,12 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import type { Product, Ingredient, Order, CartItem, Category, Expense, Customer, User, Shift, Role, CurrentUser, OrderType, PaymentMethod, DeliveryPlatform } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-
-// This context will now primarily manage UI state and data passed down from server components.
-// All database write operations will be handled by Server Actions.
+import {
+  getProducts, getIngredients, getCategories, getUsers, getRoles,
+  getOrderTypes, getPaymentMethods, getDeliveryPlatforms, getOrders, getExpenses, getShifts,
+  addShift as addShiftDB, updateShift as updateShiftDB
+} from "@/lib/database";
+import { getSession, logoutLocal } from "@/lib/auth";
 
 interface AppContextType {
   products: Product[];
@@ -22,50 +25,59 @@ interface AppContextType {
   paymentMethods: PaymentMethod[];
   deliveryPlatforms: DeliveryPlatform[];
   currentUser: CurrentUser | null;
+  activeShift: Shift | null;
   
-  // The context is no longer responsible for mutations, only for starting a shift (client-side state).
-  startShift: (user: User) => void;
+  startShift: (user: User) => Promise<void>;
   logout: () => void;
+  refreshData: () => Promise<void>;
 }
 
 const AppContext = React.createContext<AppContextType | undefined>(undefined);
 
-interface InitialData {
-  products: Product[];
-  ingredients: Ingredient[];
-  categories: Category[];
-  users: User[];
-  roles: Role[];
-  orderTypes: OrderType[];
-  paymentMethods: PaymentMethod[];
-  deliveryPlatforms: DeliveryPlatform[];
-}
-
-interface AppProviderProps {
-  children: React.ReactNode;
-  initialData: InitialData;
-}
-
-export function AppProvider({ children, initialData }: AppProviderProps) {
+export function AppProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
   const router = useRouter();
 
-  // State is initialized from server-fetched data
-  const [products, setProducts] = React.useState<Product[]>(initialData.products);
-  const [ingredients, setIngredients] = React.useState<Ingredient[]>(initialData.ingredients);
-  const [categories, setCategories] = React.useState<Category[]>(initialData.categories);
-  const [users, setUsers] = React.useState<User[]>(initialData.users);
-  const [roles, setRoles] = React.useState<Role[]>(initialData.roles);
-  const [orderTypes, setOrderTypes] = React.useState<OrderType[]>(initialData.orderTypes);
-  const [paymentMethods, setPaymentMethods] = React.useState<PaymentMethod[]>(initialData.paymentMethods);
-  const [deliveryPlatforms, setDeliveryPlatforms] = React.useState<DeliveryPlatform[]>(initialData.deliveryPlatforms);
-
-  // These states are purely client-side and ephemeral
+  const [products, setProducts] = React.useState<Product[]>([]);
+  const [ingredients, setIngredients] = React.useState<Ingredient[]>([]);
+  const [categories, setCategories] = React.useState<Category[]>([]);
+  const [users, setUsers] = React.useState<User[]>([]);
+  const [roles, setRoles] = React.useState<Role[]>([]);
+  const [orderTypes, setOrderTypes] = React.useState<OrderType[]>([]);
+  const [paymentMethods, setPaymentMethods] = React.useState<PaymentMethod[]>([]);
+  const [deliveryPlatforms, setDeliveryPlatforms] = React.useState<DeliveryPlatform[]>([]);
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
   const [shifts, setShifts] = React.useState<Shift[]>([]);
   const [currentUser, setCurrentUser] = React.useState<CurrentUser | null>(null);
   const [activeShift, setActiveShift] = React.useState<Shift | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  const refreshData = React.useCallback(async () => {
+    const [p, i, c, u, r, ot, pm, dp, o, e, s] = await Promise.all([
+      getProducts(), getIngredients(), getCategories(), getUsers(), getRoles(),
+      getOrderTypes(), getPaymentMethods(), getDeliveryPlatforms(), getOrders(), getExpenses(), getShifts()
+    ]);
+    setProducts(p);
+    setIngredients(i);
+    setCategories(c);
+    setUsers(u);
+    setRoles(r);
+    setOrderTypes(ot);
+    setPaymentMethods(pm);
+    setDeliveryPlatforms(dp);
+    setOrders(o);
+    setExpenses(e);
+    setShifts(s);
+  }, []);
+
+  React.useEffect(() => {
+    const session = getSession();
+    if (session) {
+        setCurrentUser(session);
+    }
+    refreshData().then(() => setLoading(false));
+  }, [refreshData]);
 
   const customers = React.useMemo(() => {
     const customerMap = new Map<string, Customer>();
@@ -83,26 +95,25 @@ export function AppProvider({ children, initialData }: AppProviderProps) {
     }
     return Array.from(customerMap.values()).sort((a,b) => a.name.localeCompare(b.name));
   }, [orders]);
-  
-  // NOTE: All add, update, delete functions for persistent data have been moved to Server Actions.
-  // This context will only handle client-side state changes, like adding an item to a temporary cart.
 
-  const startShift = React.useCallback((user: User) => {
+  const startShift = React.useCallback(async (user: User) => {
     const role = roles.find(r => r.id === user.roleId);
     if (role) {
       const userWithRole: CurrentUser = { ...user, role };
       setCurrentUser(userWithRole);
 
       if (role.permissions.includes('caja')) {
-        const newShift: Shift = {
-          id: `shift${Date.now()}`,
+        const newShift: Omit<Shift, 'id'> = {
           userId: user.id,
           userName: user.name,
           startTime: new Date().toISOString(),
           orders: [],
           totalSales: 0,
         };
-        setActiveShift(newShift);
+        const savedShift = await addShiftDB(newShift);
+        if (savedShift) {
+            setActiveShift(savedShift);
+        }
       }
       toast({ title: `Turno iniciado para ${user.name}` });
     } else {
@@ -110,28 +121,28 @@ export function AppProvider({ children, initialData }: AppProviderProps) {
     }
   }, [roles, toast]);
 
-  const logout = React.useCallback(() => {
-    // The actual Supabase signout is a server action. This function clears local shift state.
+  const logout = React.useCallback(async () => {
     if (activeShift) {
         const endedShift = { ...activeShift, endTime: new Date().toISOString() };
-        // In a real app, you'd want to persist this shift summary
-        setShifts(prev => [...prev, endedShift]);
+        await updateShiftDB(endedShift);
         setActiveShift(null);
     }
+    logoutLocal();
     setCurrentUser(null);
-    // Redirect is handled by middleware
     router.push('/login');
   }, [activeShift, router]);
 
   const value = React.useMemo(() => ({
     products, ingredients, categories, orders, expenses, customers, users, roles, shifts, currentUser,
-    orderTypes, paymentMethods, deliveryPlatforms,
-    startShift, logout,
+    orderTypes, paymentMethods, deliveryPlatforms, activeShift,
+    startShift, logout, refreshData
   }), [
     products, ingredients, categories, orders, expenses, customers, users, roles, shifts, currentUser,
-    orderTypes, paymentMethods, deliveryPlatforms,
-    startShift, logout,
+    orderTypes, paymentMethods, deliveryPlatforms, activeShift,
+    startShift, logout, refreshData
   ]);
+
+  if (loading) return null;
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
