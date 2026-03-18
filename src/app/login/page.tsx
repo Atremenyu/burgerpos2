@@ -56,12 +56,12 @@ export default function LoginPage() {
               </Alert>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Usuario</Label>
               <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="m@example.com"
+                id="username"
+                name="username"
+                type="text"
+                placeholder="Admin"
                 required
               />
             </div>

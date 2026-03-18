@@ -1,10 +1,10 @@
 import { db } from '@/lib/db';
 
 export async function loginLocal(formData: FormData) {
-  const email = formData.get('email') as string;
+  const username = formData.get('username') as string;
   const password = formData.get('password') as string;
 
-  const authUser = await db.auth.where('email').equals(email).first();
+  const authUser = await db.auth.where('username').equals(username).first();
 
   if (!authUser || authUser.password !== password) {
     return { error: 'Credenciales inválidas' };
@@ -33,7 +33,7 @@ export async function signupLocal(formData: FormData) {
       return { error: 'El registro manual está desactivado. Contacte al administrador.' };
   }
 
-  const email = formData.get('email') as string;
+  const username = formData.get('username') as string;
   const password = formData.get('password') as string;
 
   const adminRoleId = crypto.randomUUID();
@@ -47,14 +47,14 @@ export async function signupLocal(formData: FormData) {
 
   await db.users.add({
     id: userId,
-    name: 'Admin',
+    name: username,
     pin: password, // Usamos la misma password como pin inicial
     roleId: adminRoleId
   });
 
   await db.auth.add({
     id: crypto.randomUUID(),
-    email,
+    username,
     password,
     userId
   });

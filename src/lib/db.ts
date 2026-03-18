@@ -16,7 +16,7 @@ export class POSDatabase extends Dexie {
   orders!: EntityTable<Order, 'id'>;
   expenses!: EntityTable<Expense, 'id'>;
   shifts!: EntityTable<Shift, 'id'>;
-  auth!: EntityTable<{ id: string; email: string; password: string; userId: string }, 'id'>;
+  auth!: EntityTable<{ id: string; username: string; password: string; userId: string }, 'id'>;
 
   constructor() {
     super('POSDatabase');
@@ -32,7 +32,7 @@ export class POSDatabase extends Dexie {
       orders: 'id, timestamp, status, userId, shiftId',
       expenses: 'id, timestamp',
       shifts: 'id, userId, startTime',
-      auth: 'id, email, password, userId'
+      auth: 'id, username, password, userId'
     });
   }
 }
@@ -61,7 +61,7 @@ export async function seedDatabase() {
 
     await db.auth.add({
       id: crypto.randomUUID(),
-      email: 'admin@admin.com',
+      username: 'Admin',
       password: '1234',
       userId: adminUserId
     });
