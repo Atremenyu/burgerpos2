@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/context/AppContext";
-import { PlusCircle, Users, Trash2, Edit, ShieldCheck, UserCog, Settings, CloudUpload, Download } from "lucide-react";
+import { PlusCircle, Trash2, Edit, ShieldCheck, UserCog, Settings, CloudUpload, Download, Clock } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,6 +41,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import type { User, Role } from "@/types";
 import { addUserAction, updateUserAction, deleteUserAction, addRoleAction, updateRoleAction, deleteRoleAction } from "./actions";
 import { GoogleDriveBackupService, exportDatabaseToJSON, importDatabaseFromJSON } from "@/lib/backup";
@@ -86,6 +87,10 @@ export default function AdminClientPage() {
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+  // Auto-backup state
+  const [autoBackupEnabled, setAutoBackupEnabled] = React.useState(false);
+  const [backupInterval, setBackupInterval] = React.useState(60); // minutes
+
   const userForm = useForm<z.infer<typeof userSchema>>({ resolver: zodResolver(userSchema) });
   const roleForm = useForm<z.infer<typeof roleSchema>>({ resolver: zodResolver(roleSchema) });
 
@@ -98,6 +103,19 @@ export default function AdminClientPage() {
     if (isRoleDialogOpen) roleForm.reset(editingRole || { name: "", permissions: [] });
     else setEditingRole(null);
   }, [isRoleDialogOpen, editingRole, roleForm]);
+
+  // Implement auto-backup logic
+  React.useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (autoBackupEnabled) {
+      interval = setInterval(async () => {
+        console.log("Realizando respaldo automático...");
+        await GoogleDriveBackupService.uploadBackup();
+        toast({ title: "Respaldo automático", description: "Se ha realizado un respaldo automático en Google Drive (Simulado)." });
+      }, backupInterval * 60 * 1000);
+    }
+    return () => clearInterval(interval);
+  }, [autoBackupEnabled, backupInterval, toast]);
 
   const handleUserSubmit = async (data: z.infer<typeof userSchema>) => {
     setIsSubmitting(true);
@@ -331,6 +349,35 @@ export default function AdminClientPage() {
                                 <p className="text-sm text-muted-foreground">Sincroniza tus datos con tu cuenta de Google Drive para mayor seguridad.</p>
                                 <Button className="w-full" onClick={handleGoogleDriveBackup} disabled={isSubmitting}>Respaldar ahora en Drive</Button>
                             </div>
+                        </div>
+
+                        <div className="p-4 border rounded-lg space-y-4 bg-muted/50">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <h3 className="font-semibold flex items-center gap-2"><Clock className="h-4 w-4"/> Respaldo Automático</h3>
+                                    <p className="text-sm text-muted-foreground">Activa la sincronización periódica con Google Drive.</p>
+                                </div>
+                                <Switch
+                                    checked={autoBackupEnabled}
+                                    onCheckedChange={setAutoBackupEnabled}
+                                />
+                            </div>
+                            {autoBackupEnabled && (
+                                <div className="flex items-center gap-4 animate-in fade-in slide-in-from-top-2">
+                                    <div className="space-y-1 flex-grow">
+                                        <label className="text-xs font-medium uppercase text-muted-foreground">Frecuencia (minutos)</label>
+                                        <Input
+                                            type="number"
+                                            value={backupInterval}
+                                            onChange={(e) => setBackupInterval(parseInt(e.target.value) || 1)}
+                                            min={1}
+                                        />
+                                    </div>
+                                    <div className="pt-5 shrink-0 text-sm text-muted-foreground">
+                                        Próximo respaldo en aprox. {backupInterval} min.
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>

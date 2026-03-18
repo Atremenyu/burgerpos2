@@ -1,10 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  // En una arquitectura Client-side con IndexedDB, el middleware de Next.js
-  // tiene limitaciones para acceder a localStorage o IndexedDB directamente.
-  // La protección de rutas se manejará principalmente en los componentes de las páginas
-  // mediante redirecciones del lado del cliente.
+export async function proxy(request: NextRequest) {
   return NextResponse.next()
 }
 
