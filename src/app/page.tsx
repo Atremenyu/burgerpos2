@@ -1,17 +1,32 @@
+"use client";
 
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import CashierClientPage from "./CashierClientPage";
+import { getSession } from "@/lib/auth";
 
-export default async function Page() {
-  const supabase = createClient();
+export default function Page() {
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data?.user) {
-    redirect("/login");
+  useEffect(() => {
+    const userSession = getSession();
+    if (!userSession) {
+      router.push("/login");
+    } else {
+      setSession(userSession);
+    }
+    setLoading(false);
+  }, [router]);
+
+  if (loading) {
+    return <div>Cargando...</div>;
+  }
+
+  if (!session) {
+    return null;
   }
 
   return <CashierClientPage />;
 }
-
-    

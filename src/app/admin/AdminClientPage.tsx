@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/context/AppContext";
-import { PlusCircle, Users, Trash2, Edit, ShieldCheck, UserCog, Settings } from "lucide-react";
+import { PlusCircle, Users, Trash2, Edit, ShieldCheck, UserCog, Settings, CloudUpload, Download } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -43,6 +43,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import type { User, Role } from "@/types";
 import { addUserAction, updateUserAction, deleteUserAction, addRoleAction, updateRoleAction, deleteRoleAction } from "./actions";
+import { GoogleDriveBackupService, exportDatabaseToJSON, importDatabaseFromJSON } from "@/lib/backup";
 
 const userSchema = z.object({
   name: z.string().min(1, "El nombre es requerido."),
@@ -70,7 +71,7 @@ type DeletableItem =
   | { type: 'role'; item: Role };
 
 export default function AdminClientPage() {
-  const { users, roles } = useAppContext();
+  const { users, roles, refreshData } = useAppContext();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -108,7 +109,7 @@ export default function AdminClientPage() {
       }
       toast({ title: `Usuario ${editingUser ? 'actualizado' : 'añadido'}`, description: `El usuario "${data.name}" ha sido guardado.`});
       setIsUserDialogOpen(false);
-      router.refresh(); // Re-fetch data on the server and re-render
+      await refreshData();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -126,7 +127,7 @@ export default function AdminClientPage() {
       }
       toast({ title: `Rol ${editingRole ? 'actualizado' : 'añadido'}`, description: `El rol "${data.name}" ha sido guardado.`});
       setIsRoleDialogOpen(false);
-      router.refresh();
+      await refreshData();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -139,7 +140,6 @@ export default function AdminClientPage() {
     setIsSubmitting(true);
     try {
       if (itemToDelete.type === 'user') {
-        // Optional: Add check if user is in use in a shift before deleting
         await deleteUserAction(itemToDelete.item.id);
       } else if (itemToDelete.type === 'role') {
         const isRoleInUse = users.some(u => u.roleId === itemToDelete.item.id);
@@ -151,7 +151,7 @@ export default function AdminClientPage() {
       toast({ title: "Elemento eliminado", description: `El elemento "${itemToDelete.item.name}" ha sido eliminado.` });
       setIsDeleteDialogOpen(false);
       setItemToDelete(null);
-      router.refresh();
+      await refreshData();
     } catch (error: any) {
       toast({ title: "Error al eliminar", description: error.message, variant: "destructive" });
     } finally {
@@ -164,15 +164,60 @@ export default function AdminClientPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleManualExport = async () => {
+    const data = await exportDatabaseToJSON();
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_pos_${new Date().toISOString()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Backup descargado", description: "El archivo de respaldo se ha descargado correctamente." });
+  };
+
+  const handleManualImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const content = e.target?.result as string;
+        try {
+            await importDatabaseFromJSON(content);
+            toast({ title: "Backup restaurado", description: "La base de datos se ha actualizado correctamente." });
+            await refreshData();
+        } catch (error) {
+            toast({ title: "Error al restaurar", description: "El archivo no es válido.", variant: "destructive" });
+        }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleGoogleDriveBackup = async () => {
+    setIsSubmitting(true);
+    try {
+        const result = await GoogleDriveBackupService.uploadBackup();
+        if (result.success) {
+            toast({ title: "Respaldo en Drive", description: "El respaldo se ha subido correctamente a Google Drive (Simulado)." });
+        }
+    } catch (error) {
+        toast({ title: "Error", description: "No se pudo conectar con Google Drive.", variant: "destructive" });
+    } finally {
+        setIsSubmitting(false);
+    }
+  }
+
   return (
     <AppShell>
       <div className="flex flex-col gap-8">
         <h1 className="text-3xl font-bold">Panel de Administración</h1>
 
         <Tabs defaultValue="users">
-            <TabsList className="grid w-full grid-cols-1 gap-1.5 sm:grid-cols-2">
-                <TabsTrigger value="users">Gestión de Usuarios</TabsTrigger>
-                <TabsTrigger value="roles">Gestión de Roles</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-1 gap-1.5 sm:grid-cols-3">
+                <TabsTrigger value="users">Usuarios</TabsTrigger>
+                <TabsTrigger value="roles">Roles</TabsTrigger>
+                <TabsTrigger value="backup">Respaldos</TabsTrigger>
             </TabsList>
 
             <TabsContent value="users" className="mt-6">
@@ -253,6 +298,40 @@ export default function AdminClientPage() {
                             ))}
                         </TableBody>
                         </Table>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+
+            <TabsContent value="backup" className="mt-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Settings /> Gestión de Datos y Respaldos</CardTitle>
+                        <CardDescription>Descarga o restaura tu base de datos localmente o en la nube.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="p-4 border rounded-lg space-y-4">
+                                <h3 className="font-semibold flex items-center gap-2"><Download className="h-4 w-4"/> Backup Local</h3>
+                                <p className="text-sm text-muted-foreground">Exporta todos los datos actuales a un archivo JSON en tu computadora.</p>
+                                <div className="flex gap-2">
+                                    <Button variant="outline" onClick={handleManualExport} className="w-full">Exportar JSON</Button>
+                                    <div className="relative w-full">
+                                        <Button variant="outline" className="w-full">Importar JSON</Button>
+                                        <input
+                                            type="file"
+                                            accept=".json"
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                            onChange={handleManualImport}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-4 border rounded-lg space-y-4">
+                                <h3 className="font-semibold flex items-center gap-2"><CloudUpload className="h-4 w-4"/> Google Drive</h3>
+                                <p className="text-sm text-muted-foreground">Sincroniza tus datos con tu cuenta de Google Drive para mayor seguridad.</p>
+                                <Button className="w-full" onClick={handleGoogleDriveBackup} disabled={isSubmitting}>Respaldar ahora en Drive</Button>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             </TabsContent>

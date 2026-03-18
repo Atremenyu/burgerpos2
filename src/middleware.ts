@@ -1,8 +1,11 @@
-import { type NextRequest } from 'next/server'
-import { updateSession } from '@/lib/supabase/middleware'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request)
+  // En una arquitectura Client-side con IndexedDB, el middleware de Next.js
+  // tiene limitaciones para acceder a localStorage o IndexedDB directamente.
+  // La protección de rutas se manejará principalmente en los componentes de las páginas
+  // mediante redirecciones del lado del cliente.
+  return NextResponse.next()
 }
 
 export const config = {

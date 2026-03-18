@@ -1,4 +1,6 @@
-import { login, signup } from "./actions";
+"use client";
+
+import { loginLocal, signupLocal } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,14 +12,33 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { seedDatabase } from "@/lib/db";
 
-export default function LoginPage({
-  searchParams,
-}: {
-  searchParams: { message: string };
-}) {
+export default function LoginPage() {
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    seedDatabase().catch(console.error);
+  }, []);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>, type: 'login' | 'signup') {
+    event.preventDefault();
+    setError(null);
+
+    const formData = new FormData(event.currentTarget);
+    const result = type === 'login' ? await loginLocal(formData) : await signupLocal(formData);
+
+    if (result.error) {
+      setError(result.error);
+    } else {
+      router.push('/');
+    }
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-muted/40">
       <Card className="w-full max-w-sm">
@@ -29,9 +50,9 @@ export default function LoginPage({
         </CardHeader>
         <form>
           <CardContent className="space-y-4">
-            {searchParams.message && (
+            {error && (
               <Alert variant="destructive">
-                <AlertDescription>{searchParams.message}</AlertDescription>
+                <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
             <div className="space-y-2">
@@ -50,10 +71,24 @@ export default function LoginPage({
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-2">
-            <Button formAction={login} className="w-full">
+            <Button onClick={(e) => {
+              const form = e.currentTarget.closest('form');
+              if (form?.checkValidity()) {
+                handleSubmit({ preventDefault: () => {}, currentTarget: form } as any, 'login');
+              } else {
+                form?.reportValidity();
+              }
+            }} className="w-full">
               Iniciar Sesión
             </Button>
-            <Button formAction={signup} variant="outline" className="w-full">
+            <Button variant="outline" onClick={(e) => {
+                const form = e.currentTarget.closest('form');
+                if (form?.checkValidity()) {
+                  handleSubmit({ preventDefault: () => {}, currentTarget: form } as any, 'signup');
+                } else {
+                  form?.reportValidity();
+                }
+              }} className="w-full">
               Registrarse (Primer Usuario)
             </Button>
           </CardFooter>
